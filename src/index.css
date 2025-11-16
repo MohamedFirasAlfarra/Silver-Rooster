@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&family=Raleway:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --primary: 0 0% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 70%;
+    --secondary-foreground: 0 0% 10%;
+    --tertiary: 0 0% 60%;
+    --tertiary-foreground: 0 0% 100%;
+    --neutral: 0 0% 96%;
+    --neutral-foreground: 0 0% 10%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 0 0% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 132 35% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 85% 45%;
+    --warning-foreground: 0 0% 100%;
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 0 0% 60%;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 98%;
+    --primary: 0 0% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 40%;
+    --secondary-foreground: 0 0% 100%;
+    --tertiary: 0 0% 50%;
+    --tertiary-foreground: 0 0% 100%;
+    --neutral: 0 0% 10%;
+    --neutral-foreground: 0 0% 98%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 0 0% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 132 35% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 43 85% 45%;
+    --warning-foreground: 0 0% 100%;
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 0 0% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html,
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html[dir="rtl"] {
+    direction: rtl;
+  }
+
+  html[dir="ltr"] {
+    direction: ltr;
+  }
+}
+
+@layer utilities {
+  .transition-theme {
+    transition: background-color 400ms ease-in-out, color 400ms ease-in-out;
+  }
+
+  .transition-page {
+    animation: fadeIn 300ms ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeInUp 0.8s ease-out;
+  }
+
+  .animate-fade-in-delay {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+  }
+
+  .animate-fade-in-delay-2 {
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .embla {
+    overflow: hidden;
+  }
+
+  .embla__container {
+    display: flex;
+  }
+
+  .embla__slide {
+    flex: 0 0 100%;
+    min-width: 0;
+  }
+}
