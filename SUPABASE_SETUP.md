@@ -81,6 +81,53 @@ CREATE POLICY "Anyone can remove from favorites" ON favorites FOR DELETE USING (
 -- Index for better performance
 CREATE INDEX idx_favorites_user_id ON favorites(user_id);
 CREATE INDEX idx_favorites_product_id ON favorites(product_id);
+
+## 4. إنشاء جداول الطلبات (Orders)
+
+```sql
+-- جدول الطلبات الرئيسي
+CREATE TABLE orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  customer_name TEXT NOT NULL,
+  customer_phone TEXT NOT NULL,
+  total_amount NUMERIC NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending', -- pending, processing, shipped, delivered, cancelled
+  delivery_address TEXT NOT NULL,
+  delivery_location TEXT NOT NULL,
+  governorate TEXT NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- جدول عناصر الطلب
+CREATE TABLE order_items (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id),
+  quantity INTEGER NOT NULL,
+  price_at_purchase NUMERIC NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- تفعيل RLS
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+
+-- سياسات الطلبات
+CREATE POLICY "Users can view own orders" ON orders FOR SELECT USING (auth.uid()::text = user_id);
+CREATE POLICY "Users can insert own orders" ON orders FOR INSERT WITH CHECK (auth.uid()::text = user_id);
+CREATE POLICY "Admin can view all orders" ON orders FOR SELECT USING (true);
+CREATE POLICY "Admin can update orders" ON orders FOR UPDATE USING (true);
+
+-- سياسات عناصر الطلب
+CREATE POLICY "Users can view own order items" ON order_items FOR SELECT USING (
+  EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()::text)
+);
+CREATE POLICY "Users can insert own order items" ON order_items FOR INSERT WITH CHECK (
+  EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid()::text)
+);
+```
 ```
 
 ## 4. إضافة بيانات تجريبية للمنتجات

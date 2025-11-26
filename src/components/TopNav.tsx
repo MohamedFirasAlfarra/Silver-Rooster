@@ -5,11 +5,11 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useTranslation } from '../lib/translations';
 import { LanguageToggle } from './LanguageToggle';
 import { ThemeToggle } from './ThemeToggle';
+import { Button } from '../components/ui/button';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList } from '../components/ui/navigation-menu';
 import { MenuIcon, XIcon, UserIcon, LogOutIcon, ShoppingCartIcon } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { supabase } from '../lib/supabaseClient';
-import { Button } from './ui/button';
 
 export const TopNav: React.FC = () => {
   const { language } = useAppStore();
@@ -36,15 +36,20 @@ export const TopNav: React.FC = () => {
   ];
 
   if (user && !isAdmin && !isGuest) {
+    navItems.push({ label: t('myOrders'), path: '/orders' });
     navItems.push({ label: t('favorites'), path: '/favorites' });
     navItems.push({ label: t('cart'), path: '/cart' });
+  }
+
+  if (isAdmin) {
+    navItems.push({ label: t('admin'), path: '/admin' });
+    navItems.push({ label: t('addProduct'), path: '/admin' }); // Add Product link for admin
   }
 
   return (
     <nav className="bg-card/95 backdrop-blur-md text-card-foreground border-b border-border/50 sticky top-0 z-40 transition-theme shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <img 
@@ -81,16 +86,6 @@ export const TopNav: React.FC = () => {
                 ))}
               </NavigationMenuList>
             </NavigationMenu>
-
-            {/* ADMIN BUTTON (Desktop) */}
-            {isAdmin && (
-              <Button
-                onClick={() => navigate('/admin')}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-normal"
-              >
-                {language === 'ar' ? 'لوحة التحكم' : 'Admin Panel'}
-              </Button>
-            )}
 
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
@@ -153,7 +148,7 @@ export const TopNav: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile Button */}
+          {/* Mobile MenuIcon Button */}
           <div className="md:hidden flex items-center gap-2">
             <LanguageToggle />
             <ThemeToggle />
@@ -173,11 +168,10 @@ export const TopNav: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile MenuIcon */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-card border-t border-border">
           <div className="px-4 py-4 space-y-3">
-
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -188,17 +182,6 @@ export const TopNav: React.FC = () => {
                 {item.label}
               </Link>
             ))}
-
-            {/* ADMIN BUTTON (Mobile) */}
-            {isAdmin && (
-              <Link
-                to="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-3 text-primary font-semibold hover:bg-muted rounded-lg transition-colors"
-              >
-                {language === 'ar' ? 'لوحة التحكم' : 'Admin Panel'}
-              </Link>
-            )}
             
             <div className="border-t border-border pt-3 space-y-2">
               {user ? (

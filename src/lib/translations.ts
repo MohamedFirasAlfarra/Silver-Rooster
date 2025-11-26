@@ -38,6 +38,8 @@ export const translations = {
     description: 'الوصف',
     contactSeller: 'تواصل مع البائع',
     buyNow: 'اشتري الآن',
+    buyWithDelivery: 'شراء مع توصيل',
+    buyPickup: 'شراء واستلام من المتجر',
     
     // Auth
     fullName: 'الاسم الكامل',
@@ -65,6 +67,8 @@ export const translations = {
     editProduct: 'تعديل منتج',
     deleteProduct: 'حذف منتج',
     productList: 'قائمة المنتجات',
+    ordersList: 'قائمة الطلبات',
+    customer: 'العميل',
     name: 'الاسم',
     save: 'حفظ',
     cancel: 'إلغاء',
@@ -75,6 +79,8 @@ export const translations = {
     uploadImage: 'رفع صورة',
     selectImage: 'اختر صورة',
     changeImage: 'تغيير الصورة',
+    updateStatus: 'تحديث الحالة',
+    statusUpdated: 'تم تحديث حالة الطلب بنجاح',
     
     // Messages
     loginSuccess: 'تم تسجيل الدخول بنجاح',
@@ -84,7 +90,7 @@ export const translations = {
     productAdded: 'تم إضافة المنتج بنجاح',
     productUpdated: 'تم تحديث المنتج بنجاح',
     productDeleted: 'تم حذف المنتج بنجاح',
-    error :'حدث خطأ',
+    error: 'حدث خطأ',
     
     // Favorites
     addToFavorites: 'إضافة للمفضلة',
@@ -111,6 +117,9 @@ export const translations = {
     confirmDelivery: 'تأكيد التوصيل',
     deliverySuccess: 'تم تأكيد طلب التوصيل بنجاح!',
     deliveryError: 'حدث خطأ أثناء تأكيد التوصيل',
+    deliveryType: 'نوع التوصيل',
+    pickup: 'استلام من المتجر',
+    deliveryCost: 'تكلفة التوصيل',
     
     // About Page
     aboutTitle: 'من نحن',
@@ -131,6 +140,25 @@ export const translations = {
     phone: 'الهاتف',
     // address: 'العنوان',
     workingHours: 'ساعات العمل',
+    
+    // Orders
+    myOrders: 'طلباتي',
+    orderId: 'رقم الطلب',
+    orderDate: 'تاريخ الطلب',
+    orderStatus: 'الحالة',
+    orderTotal: 'الإجمالي',
+    orderDetails: 'تفاصيل الطلب',
+    items: 'المنتجات',
+    status_pending: 'قيد الانتظار',
+    status_processing: 'قيد التجهيز',
+    status_shipped: 'تم الشحن',
+    status_delivered: 'تم التوصيل',
+    status_cancelled: 'ملغي',
+    noOrders: 'ليس لديك طلبات سابقة',
+    startShopping: 'ابدأ التسوق الآن',
+    backToOrders: 'العودة للطلبات',
+    orderSummary: 'ملخص الطلب',
+    deliveryInfo: 'معلومات التوصيل',
     
     // Footer
     copyright: '© 2024 الديك الفضي. جميع الحقوق محفوظة.',
@@ -172,6 +200,8 @@ export const translations = {
     description: 'Description',
     contactSeller: 'Contact Seller',
     buyNow: 'Buy Now',
+    buyWithDelivery: 'Buy with Delivery',
+    buyPickup: 'Buy & Pickup',
     
     // Auth
     fullName: 'Full Name',
@@ -199,6 +229,8 @@ export const translations = {
     editProduct: 'Edit Product',
     deleteProduct: 'Delete Product',
     productList: 'Product List',
+    ordersList: 'Orders List',
+    customer: 'Customer',
     name: 'Name',
     save: 'Save',
     cancel: 'Cancel',
@@ -209,6 +241,8 @@ export const translations = {
     uploadImage: 'Upload Image',
     selectImage: 'Select Image',
     changeImage: 'Change Image',
+    updateStatus: 'Update Status',
+    statusUpdated: 'Order status updated successfully',
     
     // Messages
     loginSuccess: 'Login successful',
@@ -245,6 +279,9 @@ export const translations = {
     confirmDelivery: 'Confirm Delivery',
     deliverySuccess: 'Delivery order confirmed successfully!',
     deliveryError: 'An error occurred while confirming delivery',
+    deliveryType: 'Delivery Type',
+    pickup: 'Pickup from Store',
+    deliveryCost: 'Delivery Cost',
     
     // About Page
     aboutTitle: 'About Us',
@@ -266,6 +303,25 @@ export const translations = {
     // address: 'Address',
     workingHours: 'Working Hours',
     
+    // Orders
+    myOrders: 'My Orders',
+    orderId: 'Order ID',
+    orderDate: 'Order Date',
+    orderStatus: 'Status',
+    orderTotal: 'Total',
+    orderDetails: 'Order Details',
+    items: 'Items',
+    status_pending: 'Pending',
+    status_processing: 'Processing',
+    status_shipped: 'Shipped',
+    status_delivered: 'Delivered',
+    status_cancelled: 'Cancelled',
+    noOrders: 'You have no previous orders',
+    startShopping: 'Start Shopping Now',
+    backToOrders: 'Back to Orders',
+    orderSummary: 'Order Summary',
+    deliveryInfo: 'Delivery Info',
+
     // Footer
     copyright: '© 2024 Silver Rooster. All rights reserved.',
   },

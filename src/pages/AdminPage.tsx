@@ -4,8 +4,9 @@ import { useAppStore } from '../stores/useAppStore';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useTranslation } from '../lib/translations';
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '../hooks/useProducts';
+import { useAdminOrders, useUpdateOrderStatus } from '../hooks/useOrders';
 import { useQueryClient } from '@tanstack/react-query';
-import { Product } from '../types';
+import { Product, Order } from '../types';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -13,8 +14,9 @@ import { Textarea } from '../components/ui/textarea';
 import { Card } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dailog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Toast } from '../components/Toast';
-import { PlusIcon, EditIcon, Trash2Icon, PackageIcon } from 'lucide-react';
+import { PlusIcon, EditIcon, Trash2Icon, PackageIcon, ShoppingBagIcon, ClockIcon, CheckCircleIcon, TruckIcon, XCircleIcon } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +32,10 @@ export const AdminPage: React.FC = () => {
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+  
+  // 🟢 Orders Hooks
+  const { data: orders, isLoading: ordersLoading } = useAdminOrders();
+  const updateOrderStatus = useUpdateOrderStatus();
 
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -156,6 +162,26 @@ export const AdminPage: React.FC = () => {
     }
   };
 
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      await updateOrderStatus.mutateAsync({ orderId, status: newStatus });
+      setToast({ open: true, title: t('statusUpdated'), variant: 'success' });
+    } catch (err) {
+      setToast({ open: true, title: t('error'), variant: 'error' });
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+      case 'processing': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'shipped': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+      case 'delivered': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   if (!isAdmin) return null;
 
   return (
@@ -179,6 +205,10 @@ export const AdminPage: React.FC = () => {
             <TabsTrigger value="products" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
               <PackageIcon className="w-4 h-4 me-2" strokeWidth={2} />
               {t('productList')}
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="data-[state=active]:bg-background data-[state=active]:text-foreground">
+              <ShoppingBagIcon className="w-4 h-4 me-2" strokeWidth={2} />
+              {t('ordersList')}
             </TabsTrigger>
           </TabsList>
 
@@ -240,6 +270,90 @@ export const AdminPage: React.FC = () => {
                 <PackageIcon className="w-16 h-16 mx-auto text-muted-foreground mb-4" strokeWidth={1} />
                 <p className="text-muted-foreground text-lg">
                   {t('noProducts')}
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="orders">
+            {ordersLoading ? (
+              <div className="text-center py-12 text-muted-foreground">
+                {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+              </div>
+            ) : orders && orders.length > 0 ? (
+              <div className="space-y-4">
+                {orders.map((order) => (
+                  <Card key={order.id} className="p-6 bg-card text-card-foreground border-border">
+                    <div className="flex flex-col lg:flex-row justify-between gap-6">
+                      {/* Order Info */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <span className="font-mono text-sm text-muted-foreground">#{order.id.slice(0, 8)}</span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+                            {t(`status_${order.status}` as any)}
+                          </span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(order.created_at).toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US', {
+                            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Customer Info */}
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-foreground">{t('customer')}</p>
+                        <p className="text-sm">{order.customer_name}</p>
+                        <p className="text-sm text-muted-foreground" dir="ltr">{order.customer_phone}</p>
+                      </div>
+
+                      {/* Delivery Info */}
+                      <div className="space-y-1 lg:w-1/4">
+                        <p className="text-sm font-semibold text-foreground">{t('deliveryAddress')}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {order.governorate}, {order.delivery_address}
+                        </p>
+                        {order.notes && (
+                          <p className="text-xs text-muted-foreground italic mt-1">"{order.notes}"</p>
+                        )}
+                      </div>
+
+                      {/* Actions & Total */}
+                      <div className="flex flex-col items-end justify-between gap-4 min-w-[200px]">
+                        <div className="text-end">
+                          <p className="text-sm text-muted-foreground">{t('total')}</p>
+                          <p className="text-xl font-bold text-primary">
+                            {order.total_amount.toLocaleString()} {language === 'ar' ? 'ر.س' : 'SAR'}
+                          </p>
+                        </div>
+                        
+                        <div className="w-full">
+                          <Select 
+                            defaultValue={order.status} 
+                            onValueChange={(value: string) => handleStatusChange(order.id, value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder={t('orderStatus')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">{t('status_pending')}</SelectItem>
+                              <SelectItem value="processing">{t('status_processing')}</SelectItem>
+                              <SelectItem value="shipped">{t('status_shipped')}</SelectItem>
+                              <SelectItem value="delivered">{t('status_delivered')}</SelectItem>
+                              <SelectItem value="cancelled">{t('status_cancelled')}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <ShoppingBagIcon className="w-16 h-16 mx-auto text-muted-foreground mb-4" strokeWidth={1} />
+                <p className="text-muted-foreground text-lg">
+                  {t('noOrders')}
                 </p>
               </div>
             )}

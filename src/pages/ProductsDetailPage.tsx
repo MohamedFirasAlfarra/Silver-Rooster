@@ -10,7 +10,8 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Toast } from '../components/Toast';
 import { GuestRestrictionModal } from '../components/ui/GuestRestrictionModal';
-import { ArrowLeftIcon, ArrowRightIcon, HeartIcon, PhoneIcon, MessageCircleIcon, PackageIcon, TagIcon } from 'lucide-react';
+import { DeliveryModal } from '../components/DeliveryModal';
+import { ArrowLeftIcon, ArrowRightIcon, HeartIcon, PhoneIcon, MessageCircleIcon, PackageIcon, TagIcon, TruckIcon, StoreIcon } from 'lucide-react';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +32,8 @@ export const ProductDetailPage: React.FC = () => {
   });
   
   const [showGuestModal, setShowGuestModal] = useState(false);
+  const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+  const [deliveryType, setDeliveryType] = useState<'pickup' | 'delivery'>('delivery');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -94,6 +97,21 @@ export const ProductDetailPage: React.FC = () => {
         variant: 'error',
       });
     }
+  };
+
+  const handleDirectBuy = (type: 'pickup' | 'delivery') => {
+    if (isGuest) {
+      setShowGuestModal(true);
+      return;
+    }
+    
+    if (!user || !id) {
+      navigate('/login');
+      return;
+    }
+
+    setDeliveryType(type);
+    setShowDeliveryModal(true);
   };
 
   if (isLoading) {
@@ -220,15 +238,36 @@ export const ProductDetailPage: React.FC = () => {
               </div>
 
               <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button
+                    onClick={() => handleDirectBuy('delivery')}
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-normal text-lg py-6"
+                    size="lg"
+                  >
+                    <TruckIcon className="w-5 h-5 me-2" strokeWidth={2} />
+                    {t('buyWithDelivery')}
+                  </Button>
+                  <Button
+                    onClick={() => handleDirectBuy('pickup')}
+                    variant="outline"
+                    className="w-full bg-card text-card-foreground border-border hover:bg-muted hover:text-foreground font-normal text-lg py-6"
+                    size="lg"
+                  >
+                    <StoreIcon className="w-5 h-5 me-2" strokeWidth={2} />
+                    {t('buyPickup')}
+                  </Button>
+                </div>
+
                 <Button
                   onClick={handleAddToCart}
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-normal text-lg py-6"
+                  variant="secondary"
+                  className="w-full font-normal text-lg py-6"
                   size="lg"
                 >
                   {t('addToCart')}
                 </Button>
                 
-                <div className="flex gap-3">
+                <div className="flex gap-3 mt-2">
                   <Button
                     variant="outline"
                     className="flex-1 bg-card text-card-foreground border-border hover:bg-muted hover:text-foreground font-normal"
@@ -251,15 +290,6 @@ export const ProductDetailPage: React.FC = () => {
                     </Button>
                   )}
                 </div>
-                
-                <Button
-                  variant="outline"
-                  className="w-full bg-card text-card-foreground border-border hover:bg-muted hover:text-foreground font-normal"
-                  size="lg"
-                >
-                  <MessageCircleIcon className="w-4 h-4 me-2" strokeWidth={2} />
-                  {language === 'ar' ? 'إرسال رسالة' : 'Send Message'}
-                </Button>
               </div>
             </Card>
           </div>
@@ -277,6 +307,16 @@ export const ProductDetailPage: React.FC = () => {
         open={showGuestModal}
         onOpenChange={setShowGuestModal}
       />
+
+      {product && user && (
+        <DeliveryModal
+          open={showDeliveryModal}
+          onOpenChange={setShowDeliveryModal}
+          userId={user.id}
+          cartItems={[{ id: 'temp', product_id: product.id, quantity: 1, product }]}
+          initialDeliveryType={deliveryType}
+        />
+      )}
     </div>
   );
 };

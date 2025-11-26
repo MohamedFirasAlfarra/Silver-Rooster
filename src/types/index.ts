@@ -43,5 +43,31 @@ export interface CartItem {
   created_at: string;
 }
 
+export interface Order {
+  id: string;
+  user_id: string;
+  customer_name: string;
+  customer_phone: string;
+  total_amount: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  delivery_address: string;
+  delivery_location: string;
+  governorate: string;
+  notes: string;
+  delivery_type: 'pickup' | 'delivery';
+  delivery_cost: number;
+  created_at: string;
+  order_items?: OrderItem[];
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  quantity: number;
+  price_at_purchase: number;
+  product?: Product;
+}
+
 export type Language = 'ar' | 'en';
 export type Theme = 'light' | 'dark';

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAppStore } from './stores/useAppStore';
 import { useAuthStore } from './stores/useAuthStore';
@@ -12,10 +12,11 @@ import { ProductDetailPage } from './pages/ProductsDetailPage';
 import { ContactPage } from './pages/ContactPage';
 import { FavoritesPage } from './pages/FavoritesPgae';
 import { CartPage } from './pages/CartPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { OrderDetailPage } from './pages/OrderDetailPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { AdminPage } from './pages/AdminPage';
-import  DebugSession  from './pages/DebugSession';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -87,10 +88,11 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/orders/:id" element={<OrderDetailPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/admin" element={<AdminPage />} />
-            <Route path="/debugSession" element={<DebugSession />} />
           </Routes>
         </div>
       </Router>
