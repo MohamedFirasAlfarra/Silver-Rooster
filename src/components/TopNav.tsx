@@ -39,6 +39,8 @@ export const TopNav: React.FC = () => {
     navItems.push({ label: t('myOrders'), path: '/orders' });
     navItems.push({ label: t('favorites'), path: '/favorites' });
     navItems.push({ label: t('cart'), path: '/cart' });
+    // Add profile link for linking telegram
+    navItems.push({ label: 'Telegram', path: '/profile' });
   }
 
   if (isAdmin) {

@@ -60,6 +60,12 @@ export const translations = {
     guestRestrictionMessage: 'هذه الميزة متاحة فقط للمستخدمين المسجلين. يرجى تسجيل الدخول أو إنشاء حساب جديد للاستمتاع بجميع المزايا.',
     loginNow: 'تسجيل الدخول الآن',
     createAccount: 'إنشاء حساب',
+    linkTelegram: 'ربط حساب التلغرام',
+    telegramLinked: 'تم ربط حساب التلغرام بنجاح',
+    telegramLinkDesc: 'احصل على إشعارات فورية بحالة طلباتك عبر التلغرام',
+    enterChatId: 'أدخل Chat ID الخاص بك',
+    howToGetChatId: 'كيف تحصل على Chat ID؟',
+    chatIdInstructions: '1. ابحث عن @SilverRoosterbot في التلغرام\n2. اضغط Start\n3. أرسل /id للبوت للحصول على المعرف الخاص بك',
     
     // Admin
     dashboard: 'لوحة التحكم',
@@ -222,6 +228,12 @@ export const translations = {
     guestRestrictionMessage: 'This feature is only available for registered users. Please login or create a new account to enjoy all features.',
     loginNow: 'Login Now',
     createAccount: 'Create Account',
+    linkTelegram: 'Link Telegram Account',
+    telegramLinked: 'Telegram account linked successfully',
+    telegramLinkDesc: 'Get instant notifications about your orders via Telegram',
+    enterChatId: 'Enter your Chat ID',
+    howToGetChatId: 'How to get Chat ID?',
+    chatIdInstructions: '1. Search for @SilverRoosterbot on Telegram\n2. Press Start\n3. Send /id to the bot to get your ID',
     
     // Admin
     dashboard: 'Dashboard',

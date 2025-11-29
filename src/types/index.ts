@@ -26,6 +26,7 @@ export interface User {
   age?: number;
   phone?: string;
   address?: string;
+  telegram_chat_id?: string;
 }
 
 export interface Favorite {

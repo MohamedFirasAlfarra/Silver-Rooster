@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import { Order, CartItem, Product } from '../types';
+import { sendTelegramMessage, formatOrderMessage } from '../lib/telegram';
+import { ADMIN_CHAT_ID } from '../lib/telegram';  
 
 export const useOrders = (userId: string | undefined) => {
   return useQuery({
@@ -111,6 +113,36 @@ export const useCreateOrder = () => {
         .eq('user_id', userId);
 
       if (clearError) throw clearError;
+
+      // 4. Send Telegram Notifications
+      try {
+        // Prepare items data for the message
+        const itemsForMessage = cartItems.map(item => ({
+          product: item.product,
+          quantity: item.quantity,
+          price: item.product.price
+        }));
+
+        const message = formatOrderMessage(order, itemsForMessage);
+
+        // Get user's telegram chat_id if available
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('telegram_chat_id')
+          .eq('id', userId)
+          .single();
+
+        // Send to Admin (You need to set the ADMIN_CHAT_ID in src/lib/telegram.ts)
+        await sendTelegramMessage(ADMIN_CHAT_ID, message);
+
+        // Send to Customer if they have linked their Telegram
+        if (profile?.telegram_chat_id) {
+          await sendTelegramMessage(profile.telegram_chat_id, message);
+        }
+      } catch (error) {
+        console.error('Error sending notifications:', error);
+        // Don't throw error here, as the order is already created successfully
+      }
 
       return order;
     },
