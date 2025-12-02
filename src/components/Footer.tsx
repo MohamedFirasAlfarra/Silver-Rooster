@@ -60,7 +60,7 @@ const Footer: React.FC = () => {
           {/* Logo and Description */}
           <div className="lg:col-span-2 space-y-6">
              <img 
-                    src="../asset/logo.JPG" 
+                    src="../asset/logo.png" 
                     className="w-52 h-w-52 rounded-3xl object-cover border-2 border-primary/30 shadow-lg shadow-gray-300"
                   />
             <p className="text-muted-foreground leading-relaxed max-w-xl">
