@@ -118,7 +118,7 @@ export const TopNav: React.FC = () => {
             <div className="relative">
               {/* التعديل: في الموبايل فقط - أكبر قليلاً وأكثر دائرية */}
               <img 
-                src="/logo.png"
+                src="/logo.jpg"
                 alt={t('siteName')}
                 className="
                   /* أحجام الموبايل (أقل من 640px) */
@@ -403,7 +403,7 @@ export const TopNav: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <img 
-                   src="/logo.png"
+                   src="/logo.jpg"
                     alt={t('siteName')}
                     className="w-12 h-12 rounded-xl object-cover border-2 border-primary/30 shadow-lg"
                   />
