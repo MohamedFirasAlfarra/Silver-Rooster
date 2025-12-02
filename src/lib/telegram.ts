@@ -1,6 +1,6 @@
 import { Order, Product } from '../types';
 const TELEGRAM_BOT_TOKEN = "8297015172:AAH4SVFKqYieIeR0so7_U7LShGBlx6W8g7s";
-export const ADMIN_CHAT_ID = "5408904778"; 
+export const ADMIN_CHAT_ID = "1117780634"; 
 
 export const sendTelegramMessage = async (chatId: string, message: string) => {
   try {
@@ -42,7 +42,7 @@ export const formatOrderMessage = (
   const itemsList = items
     .map(
       (item) =>
-        `- ${item.product.name_ar} (${item.quantity} × ${item.price} ر.س)`
+        `- ${item.product.name_ar} (${item.quantity} × ${item.price} ل.س)`
     )
     .join('\n');
 
@@ -56,7 +56,7 @@ export const formatOrderMessage = (
 <b>المنتجات:</b>
 ${itemsList}
 
-<b>الإجمالي:</b> ${order.total_amount} ر.س
+<b>الإجمالي:</b> ${order.total_amount} ل.س
 <b>طريقة الدفع:</b> الدفع عند الاستلام
 <b>العنوان:</b> ${order.governorate} – ${order.delivery_address}
 <b>التاريخ:</b> ${date}

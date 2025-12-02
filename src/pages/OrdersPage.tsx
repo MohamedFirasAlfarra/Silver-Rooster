@@ -103,7 +103,7 @@ export const OrdersPage: React.FC = () => {
                     <div className="text-end">
                       <p className="text-sm text-muted-foreground">{t('total')}</p>
                       <p className="text-xl font-bold text-primary">
-                        {order.total_amount.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ر.س' : 'SAR'}
+                        {order.total_amount.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ل.س' : 'SAR'}
                       </p>
                     </div>
                     {language === 'ar' ? (

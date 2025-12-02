@@ -137,20 +137,20 @@ export const OrderDetailPage: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('items')} ({order.order_items?.length})</span>
-                <span>{(order.total_amount - (order.delivery_cost || 0)).toLocaleString()} {language === 'ar' ? 'ر.س' : 'SAR'}</span>
+                <span>{(order.total_amount - (order.delivery_cost || 0)).toLocaleString()} {language === 'ar' ? 'ل.س' : 'SAR'}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">{t('deliveryCost')}</span>
                 <span className="text-green-600">
                   {order.delivery_cost > 0 
-                    ? `${order.delivery_cost.toLocaleString()} ${language === 'ar' ? 'ر.س' : 'SAR'}`
+                    ? `${order.delivery_cost.toLocaleString()} ${language === 'ar' ? 'ل.س' : 'SAR'}`
                     : (language === 'ar' ? 'مجاني' : 'Free')}
                 </span>
               </div>
               <div className="border-t border-border pt-3 mt-3">
                 <div className="flex justify-between font-bold text-lg">
                   <span>{t('total')}</span>
-                  <span className="text-primary">{order.total_amount.toLocaleString()} {language === 'ar' ? 'ر.س' : 'SAR'}</span>
+                  <span className="text-primary">{order.total_amount.toLocaleString()} {language === 'ar' ? 'ل.س' : 'SAR'}</span>
                 </div>
               </div>
             </div>
@@ -185,7 +185,7 @@ export const OrderDetailPage: React.FC = () => {
                       {item.quantity} x {item.price_at_purchase.toLocaleString()}
                     </span>
                     <span className="font-bold text-primary">
-                      {(item.quantity * item.price_at_purchase).toLocaleString()} {language === 'ar' ? 'ر.س' : 'SAR'}
+                      {(item.quantity * item.price_at_purchase).toLocaleString()} {language === 'ar' ? 'ل.س' : 'SAR'}
                     </span>
                   </div>
                 </div>

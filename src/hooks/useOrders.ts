@@ -133,7 +133,9 @@ export const useCreateOrder = () => {
           .single();
 
         // Send to Admin (You need to set the ADMIN_CHAT_ID in src/lib/telegram.ts)
-        await sendTelegramMessage(ADMIN_CHAT_ID, message);
+        if (ADMIN_CHAT_ID) {
+          await sendTelegramMessage(ADMIN_CHAT_ID, message);
+        }
 
         // Send to Customer if they have linked their Telegram
         if (profile?.telegram_chat_id) {
@@ -160,7 +162,13 @@ export const useAdminOrders = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          order_items (
+            *,
+            product:products (*)
+          )
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -174,19 +182,83 @@ export const useUpdateOrderStatus = () => {
   
   return useMutation({
     mutationFn: async ({ orderId, status }: { orderId: string; status: string }) => {
+      console.log('Updating order status:', { orderId, status });
+      
+      // ⬅️ لا نحتاج إلى تحديث updated_at يدوياً - الـTrigger سيفعل ذلك تلقائياً
       const { data, error } = await supabase
         .from('orders')
-        .update({ status })
+        .update({ 
+          status: status
+          // ❌ لا تضيف updated_at هنا - الـTrigger سيتولى ذلك
+        })
         .eq('id', orderId)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating order status:', error);
+        throw error;
+      }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (updatedOrder) => {
+      console.log('Order status updated successfully:', updatedOrder);
       queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
-      queryClient.invalidateQueries({ queryKey: ['orders'] }); // Also update user's view
+      queryClient.invalidateQueries({ queryKey: ['orders', updatedOrder.user_id] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
+    onError: (error) => {
+      console.error('Mutation error:', error);
+    }
+  });
+};
+
+export const useDeleteOrder = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      console.log('Deleting order:', orderId);
+      
+      try {
+        // 1. First delete order items (foreign key constraint)
+        const { error: itemsError, count: itemsCount } = await supabase
+          .from('order_items')
+          .delete()
+          .eq('order_id', orderId);
+
+        if (itemsError) {
+          console.error('Error deleting order items:', itemsError);
+          throw itemsError;
+        }
+
+        console.log(`Deleted ${itemsCount} order items`);
+
+        // 2. Then delete the order
+        const { error: orderError } = await supabase
+          .from('orders')
+          .delete()
+          .eq('id', orderId);
+        
+        if (orderError) {
+          console.error('Error deleting order:', orderError);
+          throw orderError;
+        }
+        
+        console.log('Order deleted successfully');
+        return orderId;
+      } catch (error) {
+        console.error('Error in deleteOrder mutation:', error);
+        throw error;
+      }
+    },
+    onSuccess: (orderId) => {
+      console.log('Order deleted successfully, invalidating queries');
+      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+    onError: (error) => {
+      console.error('Delete order error:', error);
+    }
   });
 };

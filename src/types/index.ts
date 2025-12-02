@@ -21,7 +21,7 @@ export interface Product {
 export interface User {
   id: string;
   email: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'guest';
   full_name?: string;
   age?: number;
   phone?: string;
@@ -42,6 +42,7 @@ export interface CartItem {
   product_id: string;
   quantity: number;
   created_at: string;
+  product?: Product;
 }
 
 export interface Order {
@@ -58,6 +59,7 @@ export interface Order {
   delivery_type: 'pickup' | 'delivery';
   delivery_cost: number;
   created_at: string;
+  updated_at?: string;
   order_items?: OrderItem[];
 }
 

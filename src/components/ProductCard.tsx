@@ -109,7 +109,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </p>
             <div className="mt-auto">
               <p className="text-xl font-bold text-primary">
-                {product.price.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ر.س' : 'SAR'}
+                {product.price.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ل.س' : 'SAR'}
               </p>
             </div>
           </div>

@@ -128,7 +128,7 @@ export const translations = {
     deliveryCost: 'تكلفة التوصيل',
     
     // About Page
-    aboutTitle: 'لامحة',
+    aboutTitle: 'لمحة',
     aboutSubtitle: 'قصتنا ورؤيتنا',
     ourStory: 'قصتنا',
     ourMission: 'مهمتنا',

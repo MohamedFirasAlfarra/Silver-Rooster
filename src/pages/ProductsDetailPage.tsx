@@ -224,7 +224,7 @@ export const ProductDetailPage: React.FC = () => {
 
               <div className="mb-6">
                 <p className="text-3xl font-bold text-primary">
-                  {product.price.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ر.س' : 'SAR'}
+                  {product.price.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ل.س' : 'SAR'}
                 </p>
               </div>
 

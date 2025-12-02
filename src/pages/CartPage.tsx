@@ -114,7 +114,7 @@ export const CartPage: React.FC = () => {
                           {category}
                         </p>
                         <p className="text-lg font-bold text-primary">
-                          {product.price.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ر.س' : 'SAR'}
+                          {product.price.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ل.س' : 'SAR'}
                         </p>
                       </div>
                       <div className="flex flex-col items-end justify-between">
@@ -165,7 +165,7 @@ export const CartPage: React.FC = () => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-muted-foreground">
                     <span>{language === 'ar' ? 'المجموع الفرعي' : 'Subtotal'}</span>
-                    <span>{total.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ر.س' : 'SAR'}</span>
+                    <span>{total.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ل.س' : 'SAR'}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
                     <span>{language === 'ar' ? 'الشحن' : 'Shipping'}</span>
@@ -174,7 +174,7 @@ export const CartPage: React.FC = () => {
                   <div className="border-t border-border pt-3">
                     <div className="flex justify-between text-lg font-bold text-foreground">
                       <span>{t('total')}</span>
-                      <span className="text-primary">{total.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ر.س' : 'SAR'}</span>
+                      <span className="text-primary">{total.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')} {language === 'ar' ? 'ل.س' : 'SAR'}</span>
                     </div>
                   </div>
                 </div>

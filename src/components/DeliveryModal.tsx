@@ -267,12 +267,12 @@ export const DeliveryModal: React.FC<DeliveryModalProps> = ({ open, onOpenChange
             <div className="bg-muted/30 p-4 rounded-lg border border-border">
               <div className="flex justify-between text-sm mb-2">
                 <span>{t('deliveryCost')}</span>
-                <span>{deliveryType === 'delivery' ? '2,500' : '0'} {language === 'ar' ? 'ر.س' : 'SAR'}</span>
+                <span>{deliveryType === 'delivery' ? '2,500' : '0'} {language === 'ar' ? 'ل.س' : 'SAR'}</span>
               </div>
               <div className="flex justify-between font-bold text-lg">
                 <span>{t('total')}</span>
                 <span className="text-primary">
-                  {(cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) + (deliveryType === 'delivery' ? 2500 : 0)).toLocaleString()} {language === 'ar' ? 'ر.س' : 'SAR'}
+                  {(cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) + (deliveryType === 'delivery' ? 2500 : 0)).toLocaleString()} {language === 'ar' ? 'ل.س' : 'SAR'}
                 </span>
               </div>
             </div>
