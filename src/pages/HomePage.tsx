@@ -28,6 +28,7 @@ import {
   PackageCheckIcon,
   Loader2Icon
 } from 'lucide-react';
+import Footer from '../components/Footer';
 
 export const HomePage: React.FC = () => {
   const { language } = useAppStore();
@@ -444,89 +445,8 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-card text-card-foreground border-t border-border py-12 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            {/* About */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                {language === 'ar' ? 'عن الديك الفضي' : 'About Silver Rooster'}
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                {language === 'ar' 
-                  ? 'نحن نقدم أفضل منتجات الدجاج الطازجة من مزارع موثوقة'
-                  : 'We offer the best fresh chicken products from trusted farms'}
-              </p>
-            </div>
+            <Footer />
 
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                {language === 'ar' ? 'روابط سريعة' : 'Quick Links'}
-              </h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <a href="/" className="text-muted-foreground hover:text-primary transition-colors">
-                    {language === 'ar' ? 'الرئيسية' : 'Home'}
-                  </a>
-                </li>
-                <li>
-                  <a href="/about" className="text-muted-foreground hover:text-primary transition-colors">
-                    {language === 'ar' ? 'من نحن' : 'About Us'}
-                  </a>
-                </li>
-                <li>
-                  <a href="/products" className="text-muted-foreground hover:text-primary transition-colors">
-                    {language === 'ar' ? 'المنتجات' : 'Products'}
-                  </a>
-                </li>
-                <li>
-                  <a href="/contact" className="text-muted-foreground hover:text-primary transition-colors">
-                    {language === 'ar' ? 'اتصل بنا' : 'Contact Us'}
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                {language === 'ar' ? 'تواصل معنا' : 'Contact Us'}
-              </h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>{language === 'ar' ? 'البريد:' : 'Email:'} info@silverrooster.com</li>
-                <li>{language === 'ar' ? 'الهاتف:' : 'Phone:'} +966 50 123 4567</li>
-                <li>{language === 'ar' ? 'العنوان:' : 'Address:'} {language === 'ar' ? 'الرياض، المملكة العربية السعودية' : 'Riyadh, Saudi Arabia'}</li>
-              </ul>
-            </div>
-
-            {/* Social */}
-            <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                {language === 'ar' ? 'تابعنا' : 'Follow Us'}
-              </h3>
-              <div className="flex gap-3">
-                <a href="#" className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
-                  <span className="text-lg">📘</span> {/* Placeholder for Facebook */}
-                </a>
-                <a href="https://www.instagram.com/aldeek_alfiddi" target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
-                  <span className="text-lg">📸</span> {/* Instagram Icon */}
-                </a>
-                <a href="#" className="w-10 h-10 bg-muted rounded-full flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors">
-                  <span className="text-lg">🐦</span> {/* Placeholder for Twitter */}
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-border pt-8 text-center">
-            <p className="text-muted-foreground text-sm">
-              {t('copyright')}
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
