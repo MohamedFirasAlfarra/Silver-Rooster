@@ -12,7 +12,7 @@ const slides = [
     titleAr: 'دجاج بجودة ممتازة',
     descriptionEn: 'Fresh, healthy, and delicious chicken products delivered to your door',
     descriptionAr: 'منتجات دجاج طازجة وصحية ولذيذة توصل إلى باب منزلك',
-    image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=1920&h=800&fit=crop',
+    image: 'https://static.hiamag.com/styles/autox754/public/article/06/10/2020/9792556-816302673.jpg',
     cta: 'Shop Now',
     ctaAr: 'تسوق الآن',
   },
@@ -22,7 +22,7 @@ const slides = [
     titleAr: 'طازج من المزرعة يومياً',
     descriptionEn: 'Sourced from trusted local farms for the best quality and taste',
     descriptionAr: 'من مزارع محلية موثوقة لأفضل جودة ومذاق',
-    image: 'https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=1920&h=800&fit=crop',
+    image: 'https://palsawa.com/uploads/images/2021/05/T2A9F.jpg',
     cta: 'Explore',
     ctaAr: 'استكشف',
   },
@@ -32,7 +32,7 @@ const slides = [
     titleAr: 'عروض خاصة',
     descriptionEn: 'Get amazing deals on our premium chicken products',
     descriptionAr: 'احصل على عروض مذهلة على منتجات الدجاج الممتازة',
-    image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=1920&h=800&fit=crop',
+    image: 'https://magic-stores.com/wp-content/uploads/2021/05/%D8%AF%D8%AC%D8%A7%D8%AC-%D9%85%D9%82%D8%B7%D8%B9.png',
     cta: 'View Offers',
     ctaAr: 'عرض العروض',
   },
@@ -75,12 +75,7 @@ export const HeroSlider: React.FC = () => {
                       <p className="text-lg md:text-xl text-white/90 mb-8 animate-fade-in-delay">
                         {language === 'ar' ? slide.descriptionAr : slide.descriptionEn}
                       </p>
-                      <Button
-                        size="lg"
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 font-normal text-lg px-8 py-6 animate-fade-in-delay-2"
-                      >
-                        {language === 'ar' ? slide.ctaAr : slide.cta}
-                      </Button>
+                     
                     </div>
                   </div>
                 </div>

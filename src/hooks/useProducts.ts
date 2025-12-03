@@ -6,14 +6,25 @@ export const useProducts = () => {
   return useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('🔍 جلب المنتجات من Supabase...');
+      
+      const { data, error, count } = await supabase
         .from('products')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .eq('is_deleted', false); // فقط المنتجات غير المحذوفة
+        
+      if (error) {
+        console.error('❌ خطأ في جلب المنتجات:', error);
+        throw error;
+      }
       
-      if (error) throw error;
+      console.log(`✅ تم جلب ${data?.length || 0} منتج`);
       return data as Product[];
     },
+    retry: 1, // إعادة المحاولة مرة واحدة فقط
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 دقائق
   });
 };
 
@@ -21,13 +32,20 @@ export const useProduct = (id: string) => {
   return useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
+      if (!id) throw new Error('معرف المنتج مطلوب');
+      
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('id', id)
+        .eq('is_deleted', false)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ خطأ في جلب المنتج:', error);
+        throw error;
+      }
+      
       return data as Product;
     },
     enabled: !!id,
@@ -38,22 +56,33 @@ export const useCreateProduct = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (product: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
-
-      // ⬇ ضروري جداً
+    mutationFn: async (productData: {
+      name: string;
+      name_ar: string;
+      category: string;
+      category_ar: string;
+      type: string;
+      type_ar: string;
+      quantity: number;
+      ingredients: string;
+      ingredients_ar: string;
+      description: string;
+      description_ar: string;
+      price: number;
+      image_url: string;
+    }) => {
+      // التحقق من تسجيل الدخول
       const { data: authUser } = await supabase.auth.getUser();
-      const userId = authUser?.user?.id;
+      if (!authUser.user) throw new Error('غير مصرح به');
 
-      if (!userId) throw new Error("Not authenticated");
-
-      const productData = {
-        ...product,
-        seller_id: userId, // ⬅ الأدمن فقط
+      const product = {
+        ...productData,
+        seller_id: authUser.user.id,
       };
 
       const { data, error } = await supabase
         .from('products')
-        .insert([productData])
+        .insert([product])
         .select()
         .single();
       
@@ -66,15 +95,14 @@ export const useCreateProduct = () => {
   });
 };
 
-
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, ...product }: Partial<Product> & { id: string }) => {
+    mutationFn: async ({ id, ...updates }: { id: string } & Partial<Product>) => {
       const { data, error } = await supabase
         .from('products')
-        .update(product)
+        .update(updates)
         .eq('id', id)
         .select()
         .single();
@@ -82,8 +110,9 @@ export const useUpdateProduct = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product', data.id] });
     },
   });
 };
@@ -95,7 +124,7 @@ export const useDeleteProduct = () => {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('products')
-       .update({ is_deleted: true })
+        .update({ is_deleted: true })
         .eq('id', id);
       
       if (error) throw error;

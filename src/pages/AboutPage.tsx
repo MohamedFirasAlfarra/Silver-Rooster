@@ -47,14 +47,14 @@ export const AboutPage: React.FC = () => {
                 </p>
                 <p>
                   {language === 'ar' 
-                    ? 'على مر السنين، نمت علامتنا التجارية لتصبح واحدة من أكثر الأسماء الموثوقة في مجال توريد الدجاج الطازج. نحن نفخر بتقديم منتجات عالية الجودة بأسعار تنافسية، مع خدمة عملاء استثنائية.'
+                    ? 'على مر السنين، نمت علامتنا التجارية لتصبح واحدة من أكثر الأسماء الموثوقة في مجال توريد الدجاج الطازج. نحن نفخر بتقديم منتجات عالية الجودة، مع خدمة عملاء استثنائية.'
                     : 'Over the years, our brand has grown to become one of the most trusted names in fresh chicken supply. We pride ourselves on delivering high-quality products at competitive prices, with exceptional customer service.'}
                 </p>
               </div>
             </div>
             <div className="relative h-[400px] rounded-2xl overflow-hidden shadow-2xl">
               <img
-                src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=800&h=600&fit=crop"
+                src="https://static.hiamag.com/styles/autox754/public/article/06/10/2020/9792556-816302673.jpg"
                 alt="Our Story"
                 className="w-full h-full object-cover"
               />
@@ -92,7 +92,7 @@ export const AboutPage: React.FC = () => {
               </h3>
               <p className="text-muted-foreground leading-relaxed">
                 {language === 'ar' 
-                  ? 'رؤيتنا هي أن نصبح الخيار الأول لمنتجات الدجاج الطازجة في المملكة، من خلال الابتكار المستمر وتحسين خدماتنا. نطمح لتوسيع نطاق عملنا لنصل إلى المزيد من العملاء في جميع أنحاء المملكة.'
+                  ? 'رؤيتنا هي أن نصبح الخيار الأول لمنتجات الدجاج الطازجة  من خلال الابتكار المستمر وتحسين خدماتنا. نطمح لتوسيع نطاق عملنا لنصل إلى المزيد من العملاء.'
                   : 'Our vision is to become the first choice for fresh chicken products in the Kingdom, through continuous innovation and improvement of our services. We aspire to expand our reach to serve more customers throughout the Kingdom.'}
               </p>
             </Card>
