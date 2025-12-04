@@ -81,27 +81,11 @@ export const ContactPage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-foreground mb-2">
                       {t('phone')}
                     </h3>
-                    <p className="text-muted-foreground" dir="ltr"> 011 2245166 </p>
+                    <p className="text-muted-foreground" dir="ltr"> 0112245166 </p>
                     <p className="text-muted-foreground" dir="ltr"> +963994539997 </p>
                   </div>
                 </div>
               </Card>
-
-              {/* <Card className="p-6 bg-card text-card-foreground border-border">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-tertiary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                    <MailIcon className="w-6 h-6 text-tertiary" strokeWidth={2} />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                      {language === 'ar' ? 'البريد الإلكتروني' : 'Email'}
-                    </h3>
-                    <p className="text-muted-foreground">info@silverrooster.com</p>
-                    <p className="text-muted-foreground">support@silverrooster.com</p>
-                  </div>
-                </div>
-              </Card> */}
-
               <Card className="p-6 bg-card text-card-foreground border-border">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center flex-shrink-0">
@@ -112,7 +96,7 @@ export const ContactPage: React.FC = () => {
                       {t('address')}
                     </h3>
                     <p className="text-muted-foreground">
-                      {language === 'ar' ? 'دمشق , كفرسوسة' : 'Damascus, Kfar Souseh'}
+                      {language === 'ar' ? 'دمشق - دوار كفرسوسه - مقابل درج مؤسسة الوحدة' : 'Damascus - Kafr Souseh roundabout - opposite the steps of the Al-Wahda Foundation'}
                     </p>
                     <p className="text-muted-foreground">
                       {language === 'ar' ? 'سوريا, دمشق' : 'Syria, Damascus'}

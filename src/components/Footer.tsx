@@ -60,7 +60,7 @@ const Footer: React.FC = () => {
           {/* Logo and Description */}
           <div className="lg:col-span-2 space-y-6">
              <img 
-                      src="public/logo.jpg" 
+                      src="https://c.animaapp.com/mhx6z2hgaXoALR/img/img_0192.JPG"
                     className="w-52 h-w-52 rounded-3xl object-cover border-2 border-primary/30 shadow-lg shadow-gray-300"
                   />
             <p className="text-muted-foreground leading-relaxed max-w-xl">
@@ -113,10 +113,12 @@ const Footer: React.FC = () => {
                 <div>
                   <p className="font-semibold text-foreground">{language === 'ar' ? 'الهاتف' : 'Phone'}</p>
                   <div className="space-y-1 mt-1">
-                    <p className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">011 2245166</p>
+                    <p className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      0112245166
+                    </p>
                     <p className="text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-2">
                      
-                      +963 994 539997
+                    +963994539997
                     </p>
                   </div>
                 </div>
@@ -128,7 +130,7 @@ const Footer: React.FC = () => {
                 <div>
                   <p className="font-semibold text-foreground">{language === 'ar' ? 'العنوان' : 'Address'}</p>
                   <p className="text-muted-foreground mt-1 hover:text-secondary transition-colors cursor-pointer">
-                    {language === 'ar' ? 'دمشق - كفرسوسة' : 'Damascus - Kfar Souseh'}
+                    {language === 'ar' ? 'دمشق - دوار كفرسوسه - مقابل درج مؤسسة الوحدة' : 'Damascus - Kafr Souseh roundabout - opposite the steps of the Al-Wahda Foundation'}
                   </p>
                 </div>
               </li>
