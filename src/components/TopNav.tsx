@@ -314,7 +314,7 @@ export const TopNav: React.FC = () => {
                   )}
                 </Button>
                 
-                <Button
+                {/* <Button
                   onClick={() => navigate('/cart')}
                   variant="ghost"
                   size="icon"
@@ -326,7 +326,7 @@ export const TopNav: React.FC = () => {
                       {cartCount}
                     </span>
                   )}
-                </Button>
+                </Button> */}
               </div>
             )}
         
