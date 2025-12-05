@@ -96,7 +96,6 @@ export const TopNav: React.FC = () => {
   if (isAdmin) {
     navItems.push(
       { label: t('admin'), path: '/admin', icon: Settings, color: 'text-yellow-500', },
-      { label: t('addProduct'), path: '/admin/add', icon: PlusCircle, color: 'text-teal-500',  }
     );
   }
 
@@ -313,20 +312,7 @@ export const TopNav: React.FC = () => {
                     </span>
                   )}
                 </Button>
-                
-                {/* <Button
-                  onClick={() => navigate('/cart')}
-                  variant="ghost"
-                  size="icon"
-                  className="bg-transparent text-foreground hover:text-primary hover:bg-primary/10 relative transition-all duration-300"
-                >
-                  <ShoppingCartIcon className="w-5 h-5" strokeWidth={2} />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -end-1 bg-primary text-primary-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold shadow-lg animate-pulse">
-                      {cartCount}
-                    </span>
-                  )}
-                </Button> */}
+              
               </div>
             )}
         
