@@ -329,8 +329,7 @@ export const TopNav: React.FC = () => {
                 </Button>
               </div>
             )}
-            
-            <LanguageToggle />
+        
             <ThemeToggle />
             
             <a 
@@ -487,36 +486,6 @@ export const TopNav: React.FC = () => {
               </div>
             )}
           </div>
-
-          {/* Quick Stats Bar */}
-          <div className="px-5 py-3 bg-gradient-to-r from-muted/50 to-muted/30 border-b border-border">
-            <div className="flex items-center justify-around">
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <Truck className="w-4 h-4 text-green-500" />
-                  <span className="text-sm font-semibold text-foreground">سريع</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">توصيل</p>
-              </div>
-              <div className="h-6 w-px bg-border"></div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <Shield className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm font-semibold text-foreground">آمن</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">دفع</p>
-              </div>
-              <div className="h-6 w-px bg-border"></div>
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <Award className="w-4 h-4 text-yellow-500" />
-                  <span className="text-sm font-semibold text-foreground">جودة</span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">مضمونة</p>
-              </div>
-            </div>
-          </div>
-
           {/* Navigation Items */}
           <div className="p-4 space-y-1 overflow-y-auto max-h-[calc(100vh-300px)] custom-scrollbar">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2 flex items-center gap-2">
