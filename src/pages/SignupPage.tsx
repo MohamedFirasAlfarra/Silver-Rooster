@@ -53,10 +53,11 @@ export const SignupPage: React.FC = () => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // التحقق من الهاتف
+  // التحقق من الهاتف - تم إلغاء التحقق من البداية +963
   const validatePhone = (phone: string) => {
-    // الصيغ المقبولة: +963xxxxxxxxx أو 09xxxxxxxx
-    return /^(\+963\d{9}|09\d{8})$/.test(phone);
+    // فقط التحقق من أن الرقم يحتوي على أرقام ويحتوي على 10 أرقام على الأقل
+    const digitsOnly = phone.replace(/\D/g, '');
+    return digitsOnly.length >= 10;
   };
 
   // التحقق من كلمة المرور
@@ -70,7 +71,7 @@ export const SignupPage: React.FC = () => {
 
     if (!fullName.trim()) newErrors.fullName = language === 'ar' ? 'الاسم الكامل مطلوب' : 'Full name is required';
     if (!age || +age < 1 || +age > 120) newErrors.age = language === 'ar' ? 'الرجاء إدخال عمر صحيح' : 'Please enter a valid age';
-    if (!validatePhone(phone)) newErrors.phone = language === 'ar' ? 'رقم الهاتف غير صحيح' : 'Invalid phone number';
+    if (!validatePhone(phone)) newErrors.phone = language === 'ar' ? 'رقم الهاتف غير صحيح (يجب أن يحتوي على 10 أرقام على الأقل)' : 'Invalid phone number (must contain at least 10 digits)';
     if (!address.trim()) newErrors.address = language === 'ar' ? 'العنوان مطلوب' : 'Address is required';
     if (!validateEmail(email)) newErrors.email = language === 'ar' ? 'البريد الإلكتروني غير صحيح' : 'Invalid email address';
     if (!validatePassword(password)) newErrors.password = language === 'ar' ? 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' : 'Password must be at least 8 characters';
@@ -78,6 +79,51 @@ export const SignupPage: React.FC = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // معالجة تغيير رقم الهاتف - إضافة +963 تلقائياً
+  const handlePhoneChange = (value: string) => {
+    // إذا كان الحقل فارغاً أو المستخدم يحذف كل شيء
+    if (value === '') {
+      setPhone('+963');
+      return;
+    }
+
+    // إذا بدأ المستخدم بكتابة رقم ولم يبدأ بـ +963، نضيفها تلقائياً
+    if (!value.startsWith('+') && value.length > 0) {
+      // إذا كان المستخدم يدخل أرقاماً فقط، نضيف +963 في البداية
+      const digitsOnly = value.replace(/\D/g, '');
+      if (digitsOnly.length <= 9) { // 9 لأننا سنضيف +963 في المقدمة
+        setPhone('+963' + digitsOnly);
+      } else {
+        // إذا كان الرقم يحتوي على أكثر من 9 أرقام، نعتبر أن المستخدم أدخل رقم كامل
+        setPhone('+' + digitsOnly);
+      }
+    } else {
+      // إذا بدأ بـ + أو يحتوي على +963 بالفعل، نتركه كما هو
+      setPhone(value);
+    }
+    
+    // إزالة خطأ الهاتف عند البدء بالكتابة
+    if (errors.phone) {
+      setErrors({ ...errors, phone: '' });
+    }
+  };
+
+  // عند التركيز على حقل الهاتف، نضيف +963 إذا كان فارغاً
+  const handlePhoneFocus = () => {
+    if (!phone || phone.trim() === '') {
+      setPhone('+963');
+    }
+  };
+
+  // عند فقدان التركيز، نتأكد من وجود +963 في البداية
+  const handlePhoneBlur = () => {
+    if (phone && phone.trim() !== '' && !phone.startsWith('+')) {
+      // إذا لم يبدأ بـ +، نضيف +963
+      const digitsOnly = phone.replace(/\D/g, '');
+      setPhone('+963' + digitsOnly);
+    }
   };
 
   // معالجة التسجيل
@@ -218,6 +264,13 @@ export const SignupPage: React.FC = () => {
     setTimeout(() => navigate('/'), 1000);
   };
 
+  // تهيئة رقم الهاتف بـ +963 عند تحميل المكون
+  useEffect(() => {
+    if (!phone) {
+      setPhone('+963');
+    }
+  }, []);
+
   return (
     <div className="transition-page min-h-screen bg-gradient-to-br from-background via-muted/10 to-background flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-4xl">
@@ -313,10 +366,9 @@ export const SignupPage: React.FC = () => {
                     id="phone"
                     type="tel"
                     value={phone}
-                    onChange={(e) => {
-                      setPhone(e.target.value);
-                      setErrors({ ...errors, phone: '' });
-                    }}
+                    onChange={(e) => handlePhoneChange(e.target.value)}
+                    onFocus={handlePhoneFocus}
+                    onBlur={handlePhoneBlur}
                     placeholder="+963 99 123 4567"
                     className={`bg-background text-foreground border-border h-11 ${errors.phone ? 'border-destructive' : ''}`}
                     dir="ltr"
@@ -327,6 +379,7 @@ export const SignupPage: React.FC = () => {
                       {errors.phone}
                     </p>
                   )}
+                 
                 </div>
               </div>
 
@@ -572,8 +625,8 @@ export const SignupPage: React.FC = () => {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {language === 'ar' 
-                      ? 'يجب أن يبدأ بـ +963 أو 09'
-                      : 'Must start with +963 or 09'}
+                      ? 'سيتم إضافة +963 تلقائياً في البداية'
+                      : '+963 will be automatically added at the beginning'}
                   </p>
                 </div>
                 <div>
