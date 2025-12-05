@@ -311,38 +311,7 @@ export const ProductsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* فلتر السعر */}
-                <div>
-                  <Label className="text-foreground mb-2 block">
-                    {t('priceRange')}
-                  </Label>
-                  <div className="space-y-3">
-                    <Slider
-                      value={priceRange}
-                      onValueChange={setPriceRange}
-                      min={0}
-                      max={maxPrice}
-                      step={100}
-                      className="my-4"
-                    />
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-foreground">
-                        {priceRange[0].toLocaleString()} {language === 'ar' ? 'ل.س' : 'SAR'}
-                      </span>
-                      <span className="text-foreground">
-                        {priceRange[1].toLocaleString()} {language === 'ar' ? 'ل.س' : 'SAR'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {language === 'ar' 
-                        ? `أعلى سعر: ${maxPrice.toLocaleString()} ل.س`
-                        : `Highest price: ${maxPrice.toLocaleString()} SAR`}
-                    </p>
-                  </div>
-                </div>
-
-                {/* معلومات التصفية */}
-                {(searchTerm || categoryFilter || typeFilter || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+              {(searchTerm || categoryFilter || typeFilter || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                   <div className="pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
                       {language === 'ar' 
