@@ -414,11 +414,6 @@ export const ProductsPage: React.FC = () => {
                 <p className="text-muted-foreground text-lg">
                   {language === 'ar' ? 'جاري تحميل المنتجات...' : 'Loading products...'}
                 </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {language === 'ar' 
-                    ? 'سيتم تخزينها في ذاكرة التصفح للمرة القادمة'
-                    : 'Will be cached for next time'}
-                </p>
               </div>
             ) : products.length === 0 ? (
               <div className="text-center py-12">
