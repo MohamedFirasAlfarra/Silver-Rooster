@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../stores/useAppStore';
 import { useTranslation } from '../lib/translations';
 import { useProducts } from '../hooks/useProducts';
@@ -13,7 +13,9 @@ import {
   AlertCircleIcon, 
   RefreshCwIcon,
   SearchIcon,
-  XIcon
+  XIcon,
+  DownloadIcon,
+  CheckCircleIcon
 } from 'lucide-react';
 
 export const ProductsPage: React.FC = () => {
@@ -24,24 +26,57 @@ export const ProductsPage: React.FC = () => {
     isLoading, 
     error, 
     refetch,
-    isError 
+    isError,
+    isFetching 
   } = useProducts();
   
   const [categoryFilter, setCategoryFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 1000000]); // زيادة النطاق
+  const [priceRange, setPriceRange] = useState([0, 1000000]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isLoadedFromCache, setIsLoadedFromCache] = useState(false);
+  const progressInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // محاكاة شريط التقدم أثناء التحميل
+  useEffect(() => {
+    if (isLoading && !isLoadedFromCache) {
+      setLoadingProgress(0);
+      progressInterval.current = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (prev >= 95) {
+            if (progressInterval.current) clearInterval(progressInterval.current);
+            return 95;
+          }
+          return prev + 5;
+        });
+      }, 300); // تحديث كل 300 مللي ثانية
+
+      return () => {
+        if (progressInterval.current) clearInterval(progressInterval.current);
+      };
+    } else if (!isLoading && loadingProgress === 95) {
+      setLoadingProgress(100);
+      setTimeout(() => setLoadingProgress(0), 500);
+      if (progressInterval.current) clearInterval(progressInterval.current);
+    }
+  }, [isLoading, isLoadedFromCache]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     console.log('📊 عدد المنتجات من useProducts:', products?.length);
-    console.log('💰 بيانات المنتجات:', products.map(p => ({ 
-      name: p.name, 
-      price: p.price,
-      category: p.category,
-      category_ar: p.category_ar
-    })));
+    
+    // التحقق مما إذا كانت البيانات قد تم تحميلها من الذاكرة المؤقتة
+    const cached = localStorage.getItem('products_cache');
+    if (cached) {
+      const { timestamp } = JSON.parse(cached);
+      const cacheAge = Date.now() - timestamp;
+      if (cacheAge < 60 * 60 * 1000) { // أقل من ساعة
+        setIsLoadedFromCache(true);
+        console.log('✅ تم تحميل المنتجات من الذاكرة المؤقتة');
+      }
+    }
   }, [products]);
 
   // معالجة خطأ الاتصال
@@ -49,11 +84,9 @@ export const ProductsPage: React.FC = () => {
     ((error as any)?.message?.includes('Failed to fetch') ||
     (error as any)?.message?.includes('ERR_NAME_NOT_RESOLVED'));
 
-  // تحسين منطق التصفية - الإصلاح هنا!
+  // تحسين منطق التصفية
   const filteredProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
-    
-    console.log('🎯 بدء التصفية - المنتجات الأصلية:', products.length);
     
     let filtered = [...products];
     
@@ -70,7 +103,6 @@ export const ProductsPage: React.FC = () => {
         
         return nameMatch || descMatch || categoryMatch;
       });
-      console.log('🔍 بعد البحث:', filtered.length);
     }
     
     // التصفية حسب الفئة
@@ -80,7 +112,6 @@ export const ProductsPage: React.FC = () => {
         const categoryField = language === 'ar' ? product.category_ar : product.category;
         return categoryField?.toLowerCase().includes(term);
       });
-      console.log('🏷️ بعد الفئة:', filtered.length);
     }
     
     // التصفية حسب النوع
@@ -90,25 +121,17 @@ export const ProductsPage: React.FC = () => {
         const typeField = language === 'ar' ? product.type_ar : product.type;
         return typeField?.toLowerCase().includes(term);
       });
-      console.log('📦 بعد النوع:', filtered.length);
     }
     
-    // التصفية حسب السعر - الإصلاح هنا!
-    console.log('💰 نطاق السعر الحالي:', priceRange[0], '-', priceRange[1]);
-    // filtered = filtered.filter(product => {
-    //   // تحويل السعر إلى رقم إذا كان نصاً
-    //   const price = typeof product.price === 'number' 
-    //     ? product.price 
-    //     : parseFloat(product.price) || 0;
+    // التصفية حسب السعر
+    filtered = filtered.filter(product => {
+      const price = typeof product.price === 'number' 
+        ? product.price 
+        : parseFloat(product.price) || 0;
       
-    //   console.log(`   منتج: ${product.name}, السعر: ${price}`);
-      
-    //   const inRange = price >= priceRange[0] && price <= priceRange[1];
-    //   return inRange;
-    // });
-    console.log('💰 بعد السعر:', filtered.length);
+      return price >= priceRange[0] && price <= priceRange[1];
+    });
     
-    console.log('✅ المنتجات المصفاة النهائية:', filtered.length);
     return filtered;
   }, [products, searchTerm, categoryFilter, typeFilter, priceRange, language]);
 
@@ -161,9 +184,22 @@ export const ProductsPage: React.FC = () => {
   useEffect(() => {
     if (products && products.length > 0 && maxPrice > 0 && priceRange[1] === 1000000) {
       setPriceRange([0, maxPrice]);
-      console.log('⚙️ تهيئة نطاق السعر إلى:', [0, maxPrice]);
     }
   }, [products, maxPrice, priceRange]);
+
+  // تحديث شريط السعر
+  const handlePriceChange = (value: number[]) => {
+    setPriceRange(value);
+  };
+
+  // إعادة تحميل البيانات يدوياً
+  const handleManualRefresh = () => {
+    // مسح الذاكرة المؤقتة
+    localStorage.removeItem('products_cache');
+    setIsLoadedFromCache(false);
+    setLoadingProgress(0);
+    refetch();
+  };
 
   if (isConnectionError) {
     return (
@@ -201,21 +237,58 @@ export const ProductsPage: React.FC = () => {
 
   return (
     <div className="transition-page min-h-screen bg-background">
+      {/* شريط التقدم */}
+      {isLoading && !isLoadedFromCache && loadingProgress > 0 && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-background">
+          <div 
+            className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300 ease-out"
+            style={{ width: `${loadingProgress}%` }}
+          />
+        </div>
+      )}
+      
       <div className="max-w-7xl mx-auto px-4 py-8">       
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">
               {t('products')}
             </h1>
-            <p className="text-muted-foreground mt-2">
-              {isLoading 
-                ? language === 'ar' ? 'جاري التحميل...' : 'Loading...'
-                : language === 'ar' 
-                  ? `عرض ${filteredProducts.length} من أصل ${products.length} منتج`
-                  : `Showing ${filteredProducts.length} of ${products.length} products`}
-            </p>
+            <div className="flex items-center gap-3 mt-2">
+              <p className="text-muted-foreground">
+                {isLoading && !isLoadedFromCache 
+                  ? language === 'ar' ? 'جاري التحميل...' : 'Loading...'
+                  : language === 'ar' 
+                    ? `عرض ${filteredProducts.length} من أصل ${products.length} منتج`
+                    : `Showing ${filteredProducts.length} of ${products.length} products`}
+              </p>
+              
+              {isLoadedFromCache && (
+                <span className="flex items-center gap-1 text-xs px-2 py-1 bg-green-500/20 text-green-600 rounded-full">
+                  <CheckCircleIcon className="w-3 h-3" />
+                  {language === 'ar' ? 'محمل من الذاكرة' : 'Loaded from cache'}
+                </span>
+              )}
+              
+              {isFetching && !isLoading && (
+                <span className="flex items-center gap-1 text-xs px-2 py-1 bg-blue-500/20 text-blue-600 rounded-full">
+                  <DownloadIcon className="w-3 h-3 animate-spin" />
+                  {language === 'ar' ? 'جاري التحديث...' : 'Updating...'}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={handleManualRefresh}
+              variant="outline"
+              size="sm"
+              className="bg-card text-card-foreground border-border hover:bg-muted hover:text-foreground font-normal"
+              disabled={isFetching}
+            >
+              <RefreshCwIcon className={`w-4 h-4 me-2 ${isFetching ? 'animate-spin' : ''}`} strokeWidth={2} />
+              {language === 'ar' ? 'تحديث البيانات' : 'Refresh Data'}
+            </Button>
+            
             <Button
               onClick={() => setShowFilters(!showFilters)}
               variant="outline"
@@ -224,6 +297,7 @@ export const ProductsPage: React.FC = () => {
               <FilterIcon className="w-4 h-4 me-2" strokeWidth={2} />
               {t('filters')}
             </Button>
+            
             {(searchTerm || categoryFilter || typeFilter || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
               <Button
                 onClick={clearFilters}
@@ -257,6 +331,22 @@ export const ProductsPage: React.FC = () => {
               </div>
               
               <div className="space-y-6">
+                {/* شريط البحث */}
+                <div>
+                  <Label className="text-foreground mb-2 block">
+                    {language === 'ar' ? 'البحث' : 'Search'}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder={language === 'ar' ? 'ابحث عن منتج...' : 'Search products...'}
+                      className="bg-background text-foreground border-border pl-10"
+                    />
+                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  </div>
+                </div>
+
                 {/* فلتر الفئة */}
                 <div>
                   <Label className="text-foreground mb-2 block">
@@ -311,7 +401,31 @@ export const ProductsPage: React.FC = () => {
                   </div>
                 </div>
 
-              {(searchTerm || categoryFilter || typeFilter || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
+                {/* فلتر السعر */}
+                <div>
+                  <Label className="text-foreground mb-2 block">
+                    {t('priceRange')} ({language === 'ar' ? 'ليرة' : 'LBP'})
+                  </Label>
+                  <div className="space-y-4">
+                    <Slider
+                      value={priceRange}
+                      onValueChange={handlePriceChange}
+                      min={0}
+                      max={maxPrice}
+                      step={1000}
+                      className="w-full"
+                    />
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>0</span>
+                      <span>
+                        {priceRange[0].toLocaleString()} - {priceRange[1].toLocaleString()}
+                      </span>
+                      <span>{maxPrice.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {(searchTerm || categoryFilter || typeFilter || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                   <div className="pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
                       {language === 'ar' 
@@ -326,11 +440,16 @@ export const ProductsPage: React.FC = () => {
 
           {/* شبكة المنتجات */}
           <main className="flex-1">
-            {isLoading ? (
+            {isLoading && !isLoadedFromCache ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
                 <p className="text-muted-foreground text-lg">
                   {language === 'ar' ? 'جاري تحميل المنتجات...' : 'Loading products...'}
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  {language === 'ar' 
+                    ? 'سيتم تخزينها في ذاكرة التصفح للمرة القادمة'
+                    : 'Will be cached for next time'}
                 </p>
               </div>
             ) : products.length === 0 ? (
@@ -388,6 +507,34 @@ export const ProductsPage: React.FC = () => {
                 
                 {/* عرض المنتجات */}
                 <CardGrid products={filteredProducts} />
+                
+                {/* معلومات التخزين المؤقت */}
+                <div className="mt-8 pt-6 border-t border-border">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <div>
+                      {isLoadedFromCache ? (
+                        <span className="flex items-center gap-1 text-green-600">
+                          <CheckCircleIcon className="w-4 h-4" />
+                          {language === 'ar' 
+                            ? 'تم تحميل المنتجات من الذاكرة المؤقتة'
+                            : 'Products loaded from cache'}
+                        </span>
+                      ) : (
+                        <span>
+                          {language === 'ar' 
+                            ? 'سيتم تخزين المنتجات في الذاكرة لمدة 24 ساعة'
+                            : 'Products will be cached for 24 hours'}
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={handleManualRefresh}
+                      className="text-primary hover:text-primary/80 text-sm"
+                    >
+                      {language === 'ar' ? 'تحديث يدوي' : 'Manual refresh'}
+                    </button>
+                  </div>
+                </div>
               </>
             )}
           </main>
