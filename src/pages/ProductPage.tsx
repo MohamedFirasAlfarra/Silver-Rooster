@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAppStore } from '../stores/useAppStore';
 import { useTranslation } from '../lib/translations';
 import { useProducts } from '../hooks/useProducts';
@@ -14,81 +14,125 @@ import {
   RefreshCwIcon,
   SearchIcon,
   XIcon,
-  DownloadIcon,
-  CheckCircleIcon
+  Loader2Icon
 } from 'lucide-react';
+import { Product } from '../types';
 
 export const ProductsPage: React.FC = () => {
   const { language } = useAppStore();
   const t = useTranslation(language);
+  
+  // استخدام useProducts العادي مع cache
   const { 
-    data: products = [], 
-    isLoading, 
+    data: allProducts = [], 
+    isLoading: isInitialLoading, 
     error, 
     refetch,
     isError,
     isFetching 
   } = useProducts();
   
+  const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
+  
   const [categoryFilter, setCategoryFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [priceRange, setPriceRange] = useState([0, 1000000]);
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [isLoadedFromCache, setIsLoadedFromCache] = useState(false);
-  const progressInterval = useRef<NodeJS.Timeout | null>(null);
-
-  // محاكاة شريط التقدم أثناء التحميل
+  
+  const productsPerBatch = 12; // عدد المنتجات في كل دفعة
+  const batchIndexRef = useRef(0);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  
+  // دالة لتحميل المزيد من المنتجات تدريجياً
+  const loadMoreProducts = useCallback(async () => {
+    if (!allProducts.length || isLoadingMore || !hasMore) return;
+    
+    setIsLoadingMore(true);
+    
+    // محاكاة تحميل تدريجي
+    setTimeout(() => {
+      const startIndex = batchIndexRef.current * productsPerBatch;
+      const endIndex = startIndex + productsPerBatch;
+      const nextBatch = allProducts.slice(startIndex, endIndex);
+      
+      if (nextBatch.length > 0) {
+        setDisplayedProducts(prev => [...prev, ...nextBatch]);
+        batchIndexRef.current += 1;
+      }
+      
+      if (endIndex >= allProducts.length) {
+        setHasMore(false);
+      }
+      
+      setIsLoadingMore(false);
+    }, 150); // تأخير قصير لمحاكاة التحميل التدريجي
+  }, [allProducts, isLoadingMore, hasMore]);
+  
+  // تهيئة العرض الأولي
   useEffect(() => {
-    if (isLoading && !isLoadedFromCache) {
-      setLoadingProgress(0);
-      progressInterval.current = setInterval(() => {
-        setLoadingProgress(prev => {
-          if (prev >= 95) {
-            if (progressInterval.current) clearInterval(progressInterval.current);
-            return 95;
-          }
-          return prev + 5;
-        });
-      }, 300); // تحديث كل 300 مللي ثانية
-
-      return () => {
-        if (progressInterval.current) clearInterval(progressInterval.current);
-      };
-    } else if (!isLoading && loadingProgress === 95) {
-      setLoadingProgress(100);
-      setTimeout(() => setLoadingProgress(0), 500);
-      if (progressInterval.current) clearInterval(progressInterval.current);
+    if (allProducts.length > 0 && !initialLoadDone) {
+      // تحميل الدفعة الأولى فوراً
+      const firstBatch = allProducts.slice(0, productsPerBatch);
+      setDisplayedProducts(firstBatch);
+      batchIndexRef.current = 1;
+      setHasMore(firstBatch.length < allProducts.length);
+      setInitialLoadDone(true);
+      
+      // تحميل الباقي في الخلفية
+      setTimeout(() => {
+        const remainingProducts = allProducts.slice(productsPerBatch);
+        if (remainingProducts.length > 0) {
+          setDisplayedProducts(allProducts);
+          setHasMore(false);
+        }
+      }, 500);
     }
-  }, [isLoading, isLoadedFromCache]);
-
+  }, [allProducts, initialLoadDone]);
+  
+  // إعداد Intersection Observer للتحميل التلقائي
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMore) return;
+    
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMoreProducts();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    
+    if (sentinelRef.current) {
+      observerRef.current.observe(sentinelRef.current);
+    }
+    
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, isLoadingMore, loadMoreProducts]);
+  
   useEffect(() => {
     window.scrollTo(0, 0);
-    console.log('📊 عدد المنتجات من useProducts:', products?.length);
-    
-    // التحقق مما إذا كانت البيانات قد تم تحميلها من الذاكرة المؤقتة
-    const cached = localStorage.getItem('products_cache');
-    if (cached) {
-      const { timestamp } = JSON.parse(cached);
-      const cacheAge = Date.now() - timestamp;
-      if (cacheAge < 60 * 60 * 1000) { // أقل من ساعة
-        setIsLoadedFromCache(true);
-        console.log('✅ تم تحميل المنتجات من الذاكرة المؤقتة');
-      }
-    }
-  }, [products]);
-
+    console.log('📊 عدد المنتجات المحملة:', displayedProducts.length);
+  }, [displayedProducts]);
+  
   // معالجة خطأ الاتصال
   const isConnectionError = isError && 
     ((error as any)?.message?.includes('Failed to fetch') ||
     (error as any)?.message?.includes('ERR_NAME_NOT_RESOLVED'));
-
+  
   // تحسين منطق التصفية
   const filteredProducts = useMemo(() => {
-    if (!products || products.length === 0) return [];
+    if (!displayedProducts || displayedProducts.length === 0) return [];
     
-    let filtered = [...products];
+    let filtered = [...displayedProducts];
     
     // التصفية حسب البحث
     if (searchTerm.trim()) {
@@ -128,20 +172,18 @@ export const ProductsPage: React.FC = () => {
       const price = typeof product.price === 'number' 
         ? product.price 
         : parseFloat(product.price) || 0;
-      
       return price >= priceRange[0] && price <= priceRange[1];
     });
     
     return filtered;
-  }, [products, searchTerm, categoryFilter, typeFilter, priceRange, language]);
-
+  }, [displayedProducts, searchTerm, categoryFilter, typeFilter, priceRange, language]);
+  
   const clearFilters = () => {
     setCategoryFilter('');
     setTypeFilter('');
     setSearchTerm('');
-    // إعادة تعيين نطاق السعر بناءً على المنتجات الفعلية
-    if (products && products.length > 0) {
-      const prices = products
+    if (allProducts && allProducts.length > 0) {
+      const prices = allProducts
         .map(p => typeof p.price === 'number' ? p.price : parseFloat(p.price) || 0)
         .filter(p => p > 0);
       const maxPrice = Math.max(...prices);
@@ -150,57 +192,51 @@ export const ProductsPage: React.FC = () => {
       setPriceRange([0, 1000000]);
     }
   };
-
-  // استخراج الفئات الفريدة
+  
+  // استخراج الفئات الفريدة من جميع المنتجات
   const uniqueCategories = useMemo(() => {
-    if (!products || products.length === 0) return [];
-    const categories = products.map(p => 
+    if (!allProducts || allProducts.length === 0) return [];
+    const categories = allProducts.map(p => 
       language === 'ar' ? (p.category_ar || p.category) : (p.category || p.category_ar)
     ).filter(Boolean);
     return Array.from(new Set(categories));
-  }, [products, language]);
-
-  // استخراج الأنواع الفريدة
+  }, [allProducts, language]);
+  
+  // استخراج الأنواع الفريدة من جميع المنتجات
   const uniqueTypes = useMemo(() => {
-    if (!products || products.length === 0) return [];
-    const types = products.map(p => 
+    if (!allProducts || allProducts.length === 0) return [];
+    const types = allProducts.map(p => 
       language === 'ar' ? (p.type_ar || p.type) : (p.type || p.type_ar)
     ).filter(Boolean);
     return Array.from(new Set(types));
-  }, [products, language]);
-
-  // الحصول على أعلى سعر للمنتجات
+  }, [allProducts, language]);
+  
+  // الحصول على أعلى سعر
   const maxPrice = useMemo(() => {
-    if (!products || products.length === 0) return 1000000;
-    const prices = products
+    if (!allProducts || allProducts.length === 0) return 1000000;
+    const prices = allProducts
       .map(p => typeof p.price === 'number' ? p.price : parseFloat(p.price) || 0)
       .filter(p => p > 0);
     if (prices.length === 0) return 1000000;
     const max = Math.max(...prices);
-    return Math.ceil(max / 1000) * 1000; // تقريب لأقرب ألف
-  }, [products]);
-
-  // تهيئة نطاق السعر عند تحميل المنتجات
+    return Math.ceil(max / 1000) * 1000;
+  }, [allProducts]);
+  
+  // تهيئة نطاق السعر
   useEffect(() => {
-    if (products && products.length > 0 && maxPrice > 0 && priceRange[1] === 1000000) {
+    if (allProducts && allProducts.length > 0 && maxPrice > 0 && priceRange[1] === 1000000) {
       setPriceRange([0, maxPrice]);
     }
-  }, [products, maxPrice, priceRange]);
-
-  // تحديث شريط السعر
-  const handlePriceChange = (value: number[]) => {
-    setPriceRange(value);
+  }, [allProducts, maxPrice, priceRange]);
+  
+  // دالة لتحميل جميع المنتجات يدوياً
+  const handleLoadAllProducts = () => {
+    if (allProducts.length > 0) {
+      setDisplayedProducts(allProducts);
+      setHasMore(false);
+    }
   };
-
-  // إعادة تحميل البيانات يدوياً
-  const handleManualRefresh = () => {
-    // مسح الذاكرة المؤقتة
-    localStorage.removeItem('products_cache');
-    setIsLoadedFromCache(false);
-    setLoadingProgress(0);
-    refetch();
-  };
-
+  
   if (isConnectionError) {
     return (
       <div className="transition-page min-h-screen bg-background flex items-center justify-center px-4">
@@ -234,61 +270,18 @@ export const ProductsPage: React.FC = () => {
       </div>
     );
   }
-
+  
   return (
     <div className="transition-page min-h-screen bg-background">
-      {/* شريط التقدم */}
-      {isLoading && !isLoadedFromCache && loadingProgress > 0 && (
-        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-background">
-          <div 
-            className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300 ease-out"
-            style={{ width: `${loadingProgress}%` }}
-          />
-        </div>
-      )}
-      
       <div className="max-w-7xl mx-auto px-4 py-8">       
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl md:text-4xl font-serif font-bold text-foreground">
               {t('products')}
             </h1>
-            <div className="flex items-center gap-3 mt-2">
-              <p className="text-muted-foreground">
-                {isLoading && !isLoadedFromCache 
-                  ? language === 'ar' ? 'جاري التحميل...' : 'Loading...'
-                  : language === 'ar' 
-                    ? `عرض ${filteredProducts.length} من أصل ${products.length} منتج`
-                    : `Showing ${filteredProducts.length} of ${products.length} products`}
-              </p>
-              
-              {isLoadedFromCache && (
-                <span className="flex items-center gap-1 text-xs px-2 py-1 bg-green-500/20 text-green-600 rounded-full">
-                  <CheckCircleIcon className="w-3 h-3" />
-                  {language === 'ar' ? 'محمل من الذاكرة' : 'Loaded from cache'}
-                </span>
-              )}
-              
-              {isFetching && !isLoading && (
-                <span className="flex items-center gap-1 text-xs px-2 py-1 bg-blue-500/20 text-blue-600 rounded-full">
-                  <DownloadIcon className="w-3 h-3 animate-spin" />
-                  {language === 'ar' ? 'جاري التحديث...' : 'Updating...'}
-                </span>
-              )}
-            </div>
+            
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={handleManualRefresh}
-              variant="outline"
-              size="sm"
-              className="bg-card text-card-foreground border-border hover:bg-muted hover:text-foreground font-normal"
-              disabled={isFetching}
-            >
-              <RefreshCwIcon className={`w-4 h-4 me-2 ${isFetching ? 'animate-spin' : ''}`} strokeWidth={2} />
-              {language === 'ar' ? 'تحديث البيانات' : 'Refresh Data'}
-            </Button>
-            
             <Button
               onClick={() => setShowFilters(!showFilters)}
               variant="outline"
@@ -297,7 +290,6 @@ export const ProductsPage: React.FC = () => {
               <FilterIcon className="w-4 h-4 me-2" strokeWidth={2} />
               {t('filters')}
             </Button>
-            
             {(searchTerm || categoryFilter || typeFilter || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
               <Button
                 onClick={clearFilters}
@@ -311,7 +303,7 @@ export const ProductsPage: React.FC = () => {
             )}
           </div>
         </div>
-
+        
         <div className="flex flex-col md:flex-row gap-8">
           {/* الشريط الجانبي للفلاتر */}
           <aside className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-64 flex-shrink-0`}>
@@ -331,22 +323,6 @@ export const ProductsPage: React.FC = () => {
               </div>
               
               <div className="space-y-6">
-                {/* شريط البحث */}
-                <div>
-                  <Label className="text-foreground mb-2 block">
-                    {language === 'ar' ? 'البحث' : 'Search'}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder={language === 'ar' ? 'ابحث عن منتج...' : 'Search products...'}
-                      className="bg-background text-foreground border-border pl-10"
-                    />
-                    <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  </div>
-                </div>
-
                 {/* فلتر الفئة */}
                 <div>
                   <Label className="text-foreground mb-2 block">
@@ -378,6 +354,8 @@ export const ProductsPage: React.FC = () => {
                     )}
                   </div>
                 </div>
+                
+                {/* فلتر النوع */}
                 <div>
                   <Label className="text-foreground mb-2 block">
                     {t('type')}
@@ -389,10 +367,16 @@ export const ProductsPage: React.FC = () => {
                       placeholder={language === 'ar' ? 'ابحث عن النوع...' : 'Search type...'}
                       className="bg-background text-foreground border-border"
                     />
-                    
+                    {uniqueTypes.length > 0 && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {language === 'ar' 
+                          ? `${uniqueTypes.length} نوع متاح` 
+                          : `${uniqueTypes.length} types available`}
+                      </div>
+                    )}
                   </div>
                 </div>
-
+                
                 {(searchTerm || categoryFilter || typeFilter || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                   <div className="pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground">
@@ -405,17 +389,17 @@ export const ProductsPage: React.FC = () => {
               </div>
             </Card>
           </aside>
-
+          
           {/* شبكة المنتجات */}
           <main className="flex-1">
-            {isLoading && !isLoadedFromCache ? (
+            {isInitialLoading && !initialLoadDone ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
                 <p className="text-muted-foreground text-lg">
                   {language === 'ar' ? 'جاري تحميل المنتجات...' : 'Loading products...'}
                 </p>
               </div>
-            ) : products.length === 0 ? (
+            ) : displayedProducts.length === 0 ? (
               <div className="text-center py-12">
                 <SearchIcon className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
                 <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -447,13 +431,14 @@ export const ProductsPage: React.FC = () => {
               </div>
             ) : (
               <>
+                {/* شريط حالة التصفية */}
                 {(searchTerm || categoryFilter || typeFilter || priceRange[0] > 0 || priceRange[1] < maxPrice) && (
                   <div className="mb-6 p-4 bg-card border border-border rounded-lg">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-foreground">
                         {language === 'ar' 
-                          ? `يتم عرض ${filteredProducts.length} منتج من أصل ${products.length}`
-                          : `Showing ${filteredProducts.length} of ${products.length} products`}
+                          ? `يتم عرض ${filteredProducts.length} منتج من أصل ${displayedProducts.length}`
+                          : `Showing ${filteredProducts.length} of ${displayedProducts.length} products`}
                       </p>
                       <Button
                         onClick={clearFilters}
@@ -466,8 +451,46 @@ export const ProductsPage: React.FC = () => {
                     </div>
                   </div>
                 )}
-            
-                 <CardGrid products={filteredProducts} />
+                
+                {/* عرض المنتجات */}
+                <CardGrid products={filteredProducts} />
+                
+                {/* مؤشر التحميل التلقائي */}
+                {hasMore && displayedProducts.length < allProducts.length && (
+                  <div className="text-center py-8">
+                    {isLoadingMore ? (
+                      <div className="inline-flex items-center gap-2 text-muted-foreground">
+                        <Loader2Icon className="w-5 h-5 animate-spin" />
+                        <span>{language === 'ar' ? 'جاري تحميل المزيد...' : 'Loading more...'}</span>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={loadMoreProducts}
+                        variant="outline"
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        {language === 'ar' ? 'تحميل المزيد' : 'Load more'}
+                      </Button>
+                    )}
+                  </div>
+                )}
+                
+                {/* زر تحميل جميع المنتجات */}
+                {hasMore && displayedProducts.length < allProducts.length && (
+                  <div className="text-center pb-8">
+                    <Button
+                      onClick={handleLoadAllProducts}
+                      variant="ghost"
+                      size="sm"
+                      className="text-primary hover:text-primary/80"
+                    >
+                      {language === 'ar' ? 'تحميل جميع المنتجات مرة واحدة' : 'Load all products at once'}
+                    </Button>
+                  </div>
+                )}
+                
+                {/* عنصر مراقبة للتحميل التلقائي */}
+                <div ref={sentinelRef} className="h-10" />
               </>
             )}
           </main>

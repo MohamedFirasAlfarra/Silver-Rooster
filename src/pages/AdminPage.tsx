@@ -42,12 +42,14 @@ import {
   Download,
   Loader2
 } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { language } = useAppStore();
   const { isAdmin, user } = useAuthStore();
   const t = useTranslation(language);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const queryClient = useQueryClient();
   const { data: products, isLoading } = useProducts();
@@ -93,9 +95,52 @@ export const AdminPage: React.FC = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
 
+  // التحقق من الجلسة عند تحميل الصفحة
   useEffect(() => {
-    if (!isAdmin) navigate('/');
-  }, [isAdmin, navigate]);
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          navigate('/login');
+          return;
+        }
+
+        // التحقق من دور المستخدم
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.role !== 'admin') {
+          setToast({
+            open: true,
+            title: language === 'ar' ? 'غير مصرح' : 'Unauthorized',
+            description: language === 'ar' 
+              ? 'ليس لديك صلاحية للوصول إلى هذه الصفحة'
+              : 'You do not have permission to access this page',
+            variant: 'error',
+          });
+          navigate('/');
+          return;
+        }
+
+        setIsCheckingAuth(false);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        navigate('/login');
+      }
+    };
+
+    checkAuth();
+  }, [navigate, language]);
+
+  useEffect(() => {
+    if (!isAdmin && !isCheckingAuth) {
+      navigate('/');
+    }
+  }, [isAdmin, isCheckingAuth, navigate]);
 
   const resetForm = () => {
     setFormData({
@@ -149,7 +194,7 @@ export const AdminPage: React.FC = () => {
       } else {
         await createProduct.mutateAsync({
           ...formData,
-          seller_id: ''
+          seller_id: user?.id || ''
         });
         setToast({ 
           open: true, 
@@ -365,6 +410,14 @@ export const AdminPage: React.FC = () => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!isAdmin) return null;
 

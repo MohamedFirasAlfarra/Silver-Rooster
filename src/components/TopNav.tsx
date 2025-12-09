@@ -49,7 +49,7 @@ export const TopNav: React.FC = () => {
       lg:bg-card/95 lg:backdrop-blur-md
       bg-card
       text-card-foreground border-b border-border/50 sticky top-0 z-50 transition-all duration-300 ${
-      scrolled ? 'shadow-xl lg:bg-card/98 lg:backdrop-blur-lg shadow-lg' : 'shadow-sm'
+      scrolled ? 'shadow-xl lg:bg-card/98 lg:backdrop-blur-lg ' : 'shadow-sm'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">

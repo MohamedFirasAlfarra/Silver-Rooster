@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../stores/useAppStore';
 import { useAuthStore } from '../stores/useAuthStore';
@@ -38,13 +38,11 @@ export const LoginPage: React.FC = () => {
       const user = data.user;
       if (!user) throw new Error("User not found");
 
-      const { data: profile, error: profileError } = await supabase
-  .from("profiles")
-  .select("role")
-  .eq("id", user.id)
-  .limit(1)
-  .maybeSingle();
-
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
       const role = profile?.role ?? "user";
 
@@ -57,7 +55,11 @@ export const LoginPage: React.FC = () => {
       setToast({ open: true, title: t('loginSuccess'), variant: 'success' });
 
       setTimeout(() => {
-        role === "admin" ? navigate('/admin') : navigate('/');
+        if (role === "admin") {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }, 800);
 
     } catch (_) {
@@ -157,4 +159,3 @@ export const LoginPage: React.FC = () => {
     </div>
   );
 };
-

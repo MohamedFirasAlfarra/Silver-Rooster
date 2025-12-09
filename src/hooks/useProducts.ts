@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabaseClient';
 import { Product } from '../types';
+import { getCachedProducts, clearProductsCache } from './useProductsOptimized';
+
+// ذاكرة تخزين محلية لهذا الهوك
+let localCache: Product[] | null = null;
 
 export const useProducts = () => {
   return useQuery({
@@ -8,11 +12,25 @@ export const useProducts = () => {
     queryFn: async () => {
       console.log('🔍 جلب المنتجات من Supabase...');
       
-      const { data, error, count } = await supabase
+      // التحقق من الكاش العالمي أولاً
+      const cachedProducts = getCachedProducts();
+      if (cachedProducts.length > 0) {
+        console.log('✅ استخدام المنتجات المخزنة في الذاكرة:', cachedProducts.length);
+        return cachedProducts;
+      }
+      
+      // التحقق من الكاش المحلي
+      if (localCache && localCache.length > 0) {
+        console.log('✅ استخدام المنتجات المخزنة محلياً:', localCache.length);
+        return localCache;
+      }
+      
+      // جلب البيانات من السيرفر
+      const { data, error } = await supabase
         .from('products')
         .select('*')
         .order('created_at', { ascending: false })
-        .eq('is_deleted', false); // فقط المنتجات غير المحذوفة
+        .eq('is_deleted', false);
         
       if (error) {
         console.error('❌ خطأ في جلب المنتجات:', error);
@@ -20,11 +38,16 @@ export const useProducts = () => {
       }
       
       console.log(`✅ تم جلب ${data?.length || 0} منتج`);
+      
+      // تحديث الكاش المحلي
+      localCache = data as Product[];
+      
       return data as Product[];
     },
-    retry: 1, // إعادة المحاولة مرة واحدة فقط
+    retry: 1,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 دقائق
+    staleTime: 30 * 60 * 1000, // 30 دقيقة
+    gcTime: 60 * 60 * 1000, // 60 دقيقة
   });
 };
 
@@ -89,8 +112,11 @@ export const useCreateProduct = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+    onSuccess: (newProduct) => {
+      // تحديث cache يدوياً
+      queryClient.setQueryData<Product[]>(['products-all'], (oldData = []) => {
+        return [newProduct, ...oldData];
+      });
     },
   });
 };
@@ -110,9 +136,14 @@ export const useUpdateProduct = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['product', data.id] });
+    onSuccess: (updatedProduct) => {
+      // تحديث cache يدوياً
+      queryClient.setQueryData<Product[]>(['products-all'], (oldData = []) => {
+        return oldData.map(product => 
+          product.id === updatedProduct.id ? updatedProduct : product
+        );
+      });
+      queryClient.invalidateQueries({ queryKey: ['product', updatedProduct.id] });
     },
   });
 };
@@ -129,8 +160,11 @@ export const useDeleteProduct = () => {
       
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+    onSuccess: (_, id) => {
+      // تحديث cache يدوياً
+      queryClient.setQueryData<Product[]>(['products-all'], (oldData = []) => {
+        return oldData.filter(product => product.id !== id);
+      });
     },
   });
 };

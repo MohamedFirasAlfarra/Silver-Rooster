@@ -1,29 +1,58 @@
-import React from 'react';
+// components/CardGrid.tsx
+import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { ProductCard } from './ProductCard';
-import { useAppStore } from '../stores/useAppStore';
 
 interface CardGridProps {
   products: Product[];
 }
 
 export const CardGrid: React.FC<CardGridProps> = ({ products }) => {
-  const { language } = useAppStore();
-
-  if (!products || products.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">
-          {language === 'ar' ? 'لا توجد منتجات لعرضها' : 'No products to display'}
-        </p>
-      </div>
-    );
-  }
-
+  const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
+  
+  // تأثير لتحميل المنتجات تدريجياً مع أنيميشن
+  useEffect(() => {
+    if (products.length === 0) {
+      setVisibleProducts([]);
+      return;
+    }
+    
+    // عرض المنتجات تدريجياً مع تأثير fade-in
+    let mounted = true;
+    let index = 0;
+    const batchSize = 8;
+    
+    const loadBatch = () => {
+      if (!mounted || index >= products.length) return;
+      
+      const nextBatch = products.slice(index, index + batchSize);
+      setVisibleProducts(prev => [...prev, ...nextBatch]);
+      index += batchSize;
+      
+      // استمر في التحميل التدريجي
+      if (index < products.length) {
+        setTimeout(loadBatch, 50);
+      }
+    };
+    
+    // بدء التحميل
+    loadBatch();
+    
+    return () => {
+      mounted = false;
+    };
+  }, [products]);
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {visibleProducts.map((product, index) => (
+        <div
+          key={product.id}
+          className="animate-fadeIn"
+          style={{ animationDelay: `${Math.min(index * 50, 1000)}ms` }}
+        >
+          <ProductCard product={product} />
+        </div>
       ))}
     </div>
   );
