@@ -154,7 +154,7 @@ const Footer: React.FC = () => {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{language === 'ar' ? 'السبت - الخميس' : 'Sat - Thu'}</span>
-                  <span className="text-foreground font-medium">8:00 AM - 10:00 PM</span>
+                  <span className="text-foreground font-medium">10:00 AM - 8:00 PM</span>
                 </div>
               </div>
             </div>
