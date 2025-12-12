@@ -1,104 +1,137 @@
 // components/AuthProvider.tsx
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase, getSession } from '../lib/supabaseClient';
 import { useAuthStore } from '../stores/useAuthStore';
 
 interface AuthContextType {
   loading: boolean;
-  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({ 
   loading: true,
-  refreshUser: async () => {}
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);
-  const { setUser, clear } = useAuthStore();
+  const { setUser, clear, user } = useAuthStore();
 
-  // دالة لتحديث حالة المستخدم
-  const refreshUser = useCallback(async () => {
-    try {
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        clear();
-        return;
-      }
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profileError) {
-        console.error( profileError);
-        
-        // إذا لم يكن هناك ملف شخصي، أنشئ واحداً افتراضي
-        if (profileError.code === 'PGRST116') {
-          const { error: insertError } = await supabase
-            .from('profiles')
-            .insert([{ 
-              id: session.user.id, 
-              email: session.user.email,
-              role: 'user'
-            }]);
-
-          if (insertError) {
-            console.error( insertError);
-          }
-        }
-      }
-
-      // تحديث حالة المستخدم
-      setUser({
-        id: session.user.id,
-        email: session.user.email || '',
-        role: profile?.role || 'user',
-      });
-
-      console.log('✅ تم تحديث حالة المستخدم:', {
-        id: session.user.id,
-        email: session.user.email,
-        role: profile?.role || 'user'
-      });
-
-    } catch (error) {
-      clear();
-    }
-  }, [setUser, clear]);
   useEffect(() => {
+    let isMounted = true;
+    let timeoutId: NodeJS.Timeout;
+
     const initializeAuth = async () => {
-      try {        
-        await new Promise(resolve => setTimeout(resolve, 500));
+      try {
+        console.log('🚀 بدء تهيئة المصادقة...');
         
-        await refreshUser();
+        // الحصول على الجلسة الحالية
+        const session = await getSession();
+        
+        if (!session) {
+          console.log('❌ لا توجد جلسة نشطة - وضع الزائر');
+          if (isMounted) {
+            setLoading(false);
+          }
+          return;
+        }
+
+        console.log('✅ جلسة موجودة:', session.user.email);
+
+        // جلب بيانات الملف الشخصي
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, email')
+          .eq('id', session.user.id)
+          .maybeSingle(); // استخدم maybeSingle بدلاً من single
+
+        // إذا لم يكن هناك ملف شخصي، لا توجد مشكلة - استخدم البيانات الافتراضية
+        const role = profile?.role || 'user';
+        const userEmail = profile?.email || session.user.email || '';
+
+        if (isMounted) {
+          setUser({
+            id: session.user.id,
+            email: userEmail,
+            role: role,
+          });
+          
+          console.log('✅ تم تحديث حالة المستخدم');
+          setLoading(false);
+        }
+
       } catch (error) {
-      } finally {
-        setLoading(false);
+        console.error('❌ خطأ في تهيئة المصادقة:', error);
+        if (isMounted) {
+          clear();
+          setLoading(false);
+        }
       }
     };
 
+    // بدء التهيئة مع timeout احتياطي
     initializeAuth();
+
+    timeoutId = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('⚠️ انتهت مهلة التهيئة، إيقاف التحميل');
+        setLoading(false);
+      }
+    }, 5000); // 5 ثواني كحد أقصى
 
     // الاستماع لتغيرات حالة المصادقة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('🔔 تغير حالة المصادقة:', event);
         
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          await refreshUser();
+        if (!isMounted) return;
+
+        if (event === 'SIGNED_IN' && session) {
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role, email')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            setUser({
+              id: session.user.id,
+              email: profile?.email || session.user.email || '',
+              role: profile?.role || 'user',
+            });
+          } catch (error) {
+            console.error('Error updating user after sign in:', error);
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              role: 'user',
+            });
+          }
         } else if (event === 'SIGNED_OUT') {
           clear();
+        } else if (event === 'USER_UPDATED' && session) {
+          // تحديث بيانات المستخدم إذا لزم الأمر
+          if (user?.id === session.user.id) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('role, email')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            setUser({
+              id: session.user.id,
+              email: profile?.email || session.user.email || '',
+              role: profile?.role || 'user',
+            });
+          }
         }
       }
     );
 
     return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
-  }, [refreshUser, clear]);
+  }, []);
 
   if (loading) {
     return (
@@ -112,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ loading, refreshUser }}>
+    <AuthContext.Provider value={{ loading }}>
       {children}
     </AuthContext.Provider>
   );

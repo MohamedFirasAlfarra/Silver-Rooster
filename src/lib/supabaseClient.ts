@@ -4,23 +4,40 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// دالة للتأكد من أن localStorage متوفر
-const getLocalStorage = () => {
-  if (typeof window !== 'undefined') {
-    return {
-      getItem: (key: string) => {
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+// تهيئة التخزين مع معالجة الأخطاء
+const createSafeStorage = () => {
+  return {
+    getItem: (key: string) => {
+      try {
+        if (typeof window === 'undefined') return null;
         const value = localStorage.getItem(key);
         return value ? JSON.parse(value) : null;
-      },
-      setItem: (key: string, value: any) => {
+      } catch (error) {
+        console.error('Error reading from localStorage:', error);
+        return null;
+      }
+    },
+    setItem: (key: string, value: any) => {
+      try {
+        if (typeof window === 'undefined') return;
         localStorage.setItem(key, JSON.stringify(value));
-      },
-      removeItem: (key: string) => {
+      } catch (error) {
+        console.error('Error writing to localStorage:', error);
+      }
+    },
+    removeItem: (key: string) => {
+      try {
+        if (typeof window === 'undefined') return;
         localStorage.removeItem(key);
-      },
-    };
-  }
-  return null;
+      } catch (error) {
+        console.error('Error removing from localStorage:', error);
+      }
+    },
+  };
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -28,25 +45,48 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,
-    storage: getLocalStorage() || {
-      getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {},
-    },
-  },
-  global: {
-    headers: {
-      'x-application-name': 'chicken-shop',
-    },
+    storage: createSafeStorage(),
   },
 });
 
-// دالة للتحقق من اتصال Supabase
-export const checkSupabaseConnection = async () => {
+// دالة مبسطة للحصول على الجلسة مع معالجة الأخطاء
+export const getSession = async () => {
   try {
-    const { data, error } = await supabase.from('products').select('id').limit(1);
-    return { connected: !error, error };
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error('Error getting session:', error);
+      return null;
+    }
+    return data.session;
   } catch (error) {
-    return { connected: false, error };
+    console.error('Unexpected error getting session:', error);
+    return null;
+  }
+};
+
+// دالة للحصول على المستخدم الحالي
+export const getCurrentUser = async () => {
+  const session = await getSession();
+  return session?.user || null;
+};
+
+// دالة للتحقق مما إذا كان المستخدم مسؤولاً
+export const isUserAdmin = async (userId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    if (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+    
+    return data?.role === 'admin';
+  } catch (error) {
+    console.error('Unexpected error checking admin:', error);
+    return false;
   }
 };
