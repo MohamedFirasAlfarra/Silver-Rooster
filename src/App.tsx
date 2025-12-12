@@ -1,3 +1,4 @@
+// App.tsx
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -5,6 +6,7 @@ import { AuthProvider } from './components/AuthProvider';
 import { SessionManager } from './components/SessionManager';
 import { AppInitializer } from './components/AppInitializer';
 import { useAppStore } from './stores/useAppStore';
+import { validateUserSession } from './stores/useAuthStore';
 import { TopNav } from './components/TopNav';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
@@ -46,6 +48,19 @@ function App() {
     document.documentElement.setAttribute('dir', language === 'ar' ? 'rtl' : 'ltr');
     document.documentElement.setAttribute('lang', language);
   }, [language]);
+
+  // فحص دوري للحالة
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const { valid, reason } = await validateUserSession();
+      if (!valid && reason !== 'No user found') {
+        console.log('⚠️ جلسة غير صالحة:', reason);
+        // يمكنك إضافة منطق لإعادة التوجيه هنا إذا لزم الأمر
+      }
+    }, 5 * 60 * 1000); // كل 5 دقائق
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

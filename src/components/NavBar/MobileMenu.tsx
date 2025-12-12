@@ -1,3 +1,4 @@
+// components/NavBar/MobileMenu.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../ui/button';
@@ -13,7 +14,13 @@ import {
   ChevronRight,
   Globe,
   Moon,
-  Sun
+  Sun,
+  Package,
+  Home,
+  Info,
+  ShoppingBag,
+  Phone,
+  Settings
 } from 'lucide-react';
 import { LanguageToggle } from '../LanguageToggle';
 import { ThemeToggle } from '../ThemeToggle';
@@ -234,58 +241,71 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             </h3>
             
             <div className="grid grid-cols-2 gap-2">
-              {user && !isAdmin && !isGuest && (
-                <>
-                  <Button
-                    onClick={() => {
-                      navigate('/cart');
-                      onClose();
-                    }}
-                    variant="ghost"
-                    className="justify-start h-14 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10 border border-blue-500/20"
-                  >
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="relative">
-                        <ShoppingCart className="w-5 h-5 text-blue-500" />
-                        {cartCount > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                            {cartCount}
+              {/* سلة المشتريات */}
+              {(user || isGuest) && !isAdmin && (
+                <Button
+                  onClick={() => {
+                    navigate('/cart');
+                    onClose();
+                  }}
+                  variant="ghost"
+                  className="justify-start h-14 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-500/5 hover:from-blue-500/20 hover:to-blue-500/10 border border-blue-500/20 relative"
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="relative">
+                      <ShoppingCart className="w-5 h-5 text-blue-500" />
+                      {cartCount > 0 && (
+                        <>
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full animate-ping opacity-75"></div>
+                          <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
+                            {cartCount > 9 ? '9+' : cartCount}
                           </span>
-                        )}
-                      </div>
-                      <div className="text-left">
-                        <p className="font-medium text-sm">{t('cart')}</p>
-                        <p className="text-xs text-muted-foreground">{cartCount} {language === 'ar' ? 'عنصر' : 'items'}</p>
-                      </div>
+                        </>
+                      )}
                     </div>
-                  </Button>
-                  
-                  <Button
-                    onClick={() => {
-                      navigate('/favorites');
-                      onClose();
-                    }}
-                    variant="ghost"
-                    className="justify-start h-14 rounded-xl bg-gradient-to-br from-red-500/10 to-red-500/5 hover:from-red-500/20 hover:to-red-500/10 border border-red-500/20"
-                  >
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="relative">
-                        <Heart className="w-5 h-5 text-red-500" fill={favoriteCount > 0 ? "currentColor" : "none"} />
-                        {favoriteCount > 0 && (
-                          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                            {favoriteCount}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-left">
-                        <p className="font-medium text-sm">{t('favorites')}</p>
-                        <p className="text-xs text-muted-foreground">{favoriteCount} {language === 'ar' ? 'مفضل' : 'favs'}</p>
-                      </div>
+                    <div className="text-left">
+                      <p className="font-medium text-sm">{t('cart')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {cartCount} {language === 'ar' ? 'عنصر' : 'items'}
+                      </p>
                     </div>
-                  </Button>
-                </>
+                  </div>
+                </Button>
               )}
               
+              {/* المفضلة */}
+              {user && !isAdmin && !isGuest && (
+                <Button
+                  onClick={() => {
+                    navigate('/favorites');
+                    onClose();
+                  }}
+                  variant="ghost"
+                  className="justify-start h-14 rounded-xl bg-gradient-to-br from-red-500/10 to-red-500/5 hover:from-red-500/20 hover:to-red-500/10 border border-red-500/20 relative"
+                >
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="relative">
+                      <Heart className="w-5 h-5 text-red-500" fill={favoriteCount > 0 ? "currentColor" : "none"} />
+                      {favoriteCount > 0 && (
+                        <>
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                          <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold border border-white">
+                            {favoriteCount > 9 ? '9+' : favoriteCount}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-sm">{t('favorites')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {favoriteCount} {language === 'ar' ? 'مفضل' : 'favs'}
+                      </p>
+                    </div>
+                  </div>
+                </Button>
+              )}
+              
+              {/* إنستجرام */}
               <Button
                 onClick={() => {
                   window.open(instagramUrl, '_blank');
@@ -303,6 +323,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                 </div>
               </Button>
               
+              {/* تسجيل الدخول/الخروج */}
               <Button
                 onClick={user ? handleLogout : () => {
                   navigate('/login');

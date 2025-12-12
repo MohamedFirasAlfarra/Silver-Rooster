@@ -28,7 +28,6 @@ export const LoginPage: React.FC = () => {
     variant: 'success' as 'success' | 'error',
   });
 
-  // تحقق إذا كان المستخدم مسجل دخول بالفعل
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();

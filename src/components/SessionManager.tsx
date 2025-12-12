@@ -1,7 +1,7 @@
 // components/SessionManager.tsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore, checkSessionExpiry } from '../stores/useAuthStore';
+import { useAuthStore, checkSessionExpiry, validateUserSession } from '../stores/useAuthStore';
 
 export const SessionManager: React.FC = () => {
   const navigate = useNavigate();
@@ -14,10 +14,10 @@ export const SessionManager: React.FC = () => {
     };
 
     // إضافة مستمعات الأحداث
-    window.addEventListener('click', updateActivity);
-    window.addEventListener('keydown', updateActivity);
-    window.addEventListener('scroll', updateActivity);
-    window.addEventListener('mousemove', updateActivity);
+    const events = ['click', 'keydown', 'scroll', 'mousemove', 'touchstart'];
+    events.forEach(event => {
+      window.addEventListener(event, updateActivity, { passive: true });
+    });
 
     // فحص انتهاء الجلسة كل دقيقة
     const interval = setInterval(() => {
@@ -31,13 +31,11 @@ export const SessionManager: React.FC = () => {
     }, 60000); // كل دقيقة
 
     // فحص عند التركيز على النافذة
-    const handleFocus = () => {
-      const expired = checkSessionExpiry();
-      if (expired && (user || isGuest)) {
-        console.log('⏰ انتهت الجلسة عند التركيز');
-        if (user) {
-          navigate('/login');
-        }
+    const handleFocus = async () => {
+      const { valid } = await validateUserSession();
+      if (!valid && user) {
+        console.log('⚠️ جلسة غير صالحة عند التركيز');
+        navigate('/login');
       }
     };
 
@@ -45,10 +43,9 @@ export const SessionManager: React.FC = () => {
 
     return () => {
       clearInterval(interval);
-      window.removeEventListener('click', updateActivity);
-      window.removeEventListener('keydown', updateActivity);
-      window.removeEventListener('scroll', updateActivity);
-      window.removeEventListener('mousemove', updateActivity);
+      events.forEach(event => {
+        window.removeEventListener(event, updateActivity);
+      });
       window.removeEventListener('focus', handleFocus);
     };
   }, [user, isGuest, navigate]);

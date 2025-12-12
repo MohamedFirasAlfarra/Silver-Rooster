@@ -9,12 +9,7 @@ export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ childr
   const { updateLastActivity } = useAuthStore();
 
   useEffect(() => {
-    console.log('🚀 تهيئة التطبيق...');
-
-    // تحديث وقت النشاط
     updateLastActivity();
-
-    // تحميل المنتجات في الخلفية
     const prefetchProducts = async () => {
       try {
         const { supabase } = await import('../lib/supabaseClient');
@@ -26,10 +21,10 @@ export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ childr
 
         if (data && data.length > 0) {
           queryClient.setQueryData(['products-all'], data);
-          console.log('✅ تم تحميل المنتجات في الخلفية:', data.length);
+          console.log( data.length);
         }
       } catch (error) {
-        console.error('❌ خطأ في تحميل المنتجات:', error);
+        console.error( error);
       }
     };
 
@@ -37,17 +32,12 @@ export const AppInitializer: React.FC<{ children: React.ReactNode }> = ({ childr
     const checkConnection = async () => {
       const { connected } = await checkSupabaseConnection();
       if (!connected) {
-        console.warn('⚠️ Supabase connection may be unstable');
       } else {
-        console.log('✅ اتصال Supabase نشط');
-        // إذا كان الاتصال جيداً، حمّل المنتجات
         prefetchProducts();
       }
     };
 
     checkConnection();
-
-    // تحديث كل 5 دقائق
     const interval = setInterval(() => {
       prefetchProducts();
     }, 5 * 60 * 1000);

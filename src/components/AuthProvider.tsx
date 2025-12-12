@@ -20,19 +20,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // دالة لتحديث حالة المستخدم
   const refreshUser = useCallback(async () => {
     try {
-      console.log('🔄 تحديث حالة المستخدم...');
       
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        console.log('❌ لا توجد جلسة نشطة');
         clear();
         return;
       }
-
-      console.log('✅ جلسة موجودة:', session.user.email);
-
-      // جلب بيانات الملف الشخصي
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -40,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (profileError) {
-        console.error('❌ خطأ في جلب الملف الشخصي:', profileError);
+        console.error( profileError);
         
         // إذا لم يكن هناك ملف شخصي، أنشئ واحداً افتراضي
         if (profileError.code === 'PGRST116') {
@@ -53,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }]);
 
           if (insertError) {
-            console.error('❌ خطأ في إنشاء الملف الشخصي:', insertError);
+            console.error( insertError);
           }
         }
       }
@@ -72,23 +66,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
     } catch (error) {
-      console.error('❌ خطأ في تحديث المستخدم:', error);
       clear();
     }
   }, [setUser, clear]);
-
-  // التأكد من الجلسة عند تحميل المكون
   useEffect(() => {
     const initializeAuth = async () => {
-      try {
-        console.log('🚀 تهيئة المصادقة...');
-        
-        // انتظر 500ms للتأكد من أن كل شيء قد تحمّل
+      try {        
         await new Promise(resolve => setTimeout(resolve, 500));
         
         await refreshUser();
       } catch (error) {
-        console.error('❌ خطأ في تهيئة المصادقة:', error);
       } finally {
         setLoading(false);
       }
@@ -99,7 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // الاستماع لتغيرات حالة المصادقة
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔔 تغير حالة المصادقة:', event);
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           await refreshUser();
