@@ -7,7 +7,7 @@ interface AuthContextType {
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ 
+const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
@@ -22,26 +22,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         console.log('🚀 بدء تهيئة المصادقة...');
-        
+
         // الحصول على الجلسة الحالية
         const session = await getSession();
-        
+
         if (!session) {
           console.log('❌ لا توجد جلسة نشطة - وضع الزائر');
-          if (isMounted) {
-            setLoading(false);
-          }
           return;
         }
 
         console.log('✅ جلسة موجودة:', session.user.email);
 
         // جلب بيانات الملف الشخصي
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from('profiles')
           .select('role, email')
           .eq('id', session.user.id)
-          .maybeSingle(); // استخدم maybeSingle بدلاً من single
+          .maybeSingle();
 
         // إذا لم يكن هناك ملف شخصي، لا توجد مشكلة - استخدم البيانات الافتراضية
         const role = profile?.role || 'user';
@@ -53,15 +50,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: userEmail,
             role: role,
           });
-          
+
           console.log('✅ تم تحديث حالة المستخدم');
-          setLoading(false);
         }
 
       } catch (error) {
         console.error('❌ خطأ في تهيئة المصادقة:', error);
         if (isMounted) {
           clear();
+        }
+      } finally {
+        if (isMounted) {
           setLoading(false);
         }
       }
@@ -81,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('🔔 تغير حالة المصادقة:', event);
-        
+
         if (!isMounted) return;
 
         if (event === 'SIGNED_IN' && session) {

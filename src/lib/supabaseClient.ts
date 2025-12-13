@@ -14,17 +14,16 @@ const createSafeStorage = () => {
     getItem: (key: string) => {
       try {
         if (typeof window === 'undefined') return null;
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : null;
+        return localStorage.getItem(key);
       } catch (error) {
         console.error('Error reading from localStorage:', error);
         return null;
       }
     },
-    setItem: (key: string, value: any) => {
+    setItem: (key: string, value: string) => {
       try {
         if (typeof window === 'undefined') return;
-        localStorage.setItem(key, JSON.stringify(value));
+        localStorage.setItem(key, value);
       } catch (error) {
         console.error('Error writing to localStorage:', error);
       }
@@ -78,12 +77,12 @@ export const isUserAdmin = async (userId: string): Promise<boolean> => {
       .select('role')
       .eq('id', userId)
       .maybeSingle();
-    
+
     if (error) {
       console.error('Error checking admin status:', error);
       return false;
     }
-    
+
     return data?.role === 'admin';
   } catch (error) {
     console.error('Unexpected error checking admin:', error);
